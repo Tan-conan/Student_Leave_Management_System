@@ -1,2 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cream: #FFFDF6;
+  --color-greenSoft: #A0C878;
+  --color-ivory: #FAF6E9;
+  --color-greenLight: #B0DB9C;
+}
+
+
+
+
