@@ -31,3 +31,19 @@ import HelloWorld from './components/HelloWorld.vue'
   filter: drop-shadow(0 0 2em #42b883aa);
 }
 </style>
+
+
+<!--
+
+
+之后开发时
+
+写完代码后：
+
+git add .
+git commit -m "描述一下改动"
+git push
+
+
+就能把最新代码同步到 GitHub。
+-->
