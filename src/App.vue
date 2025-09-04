@@ -3,7 +3,9 @@ import HelloWorld from './Pages/LoginPage.vue'
 </script>
 
 <template>
+<div class="min-h-screen bg-(--color-cream)">
   <router-view />
+</div>
 </template>
 
 <style scoped>
