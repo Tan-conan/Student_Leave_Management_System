@@ -19,7 +19,8 @@ function selection(e){
 <template>
 
 <select :class="[
-    'border focus:outline-none border-greenSoft rounded-xl h-[50px] placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft',
+    'border focus:outline-none border-greenSoft rounded-xl h-[50px] bg-ivory',
+    'placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft',
      widthClass]" :value="dropdownValue" @change="selection">
 
 <option disabled selected hidden value="">{{placeholder}}</option>

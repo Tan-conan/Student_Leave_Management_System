@@ -6,10 +6,14 @@ const props = defineProps({
   clickedButtonValue:{type:String, default:''}
 })
 
-const emit = defineEmits(['update:clickedButtonValue'])
+const emit = defineEmits(['update:clickedButtonValue','forgotPassClicked'])
 
 function updateValue(val) {
   emit('update:clickedButtonValue',val);
+}
+
+function forgotPassClicked() {
+  emit('forgotPassClicked');
 }
 
 </script>
@@ -17,11 +21,11 @@ function updateValue(val) {
 <template>
 <div class="flex flex-col items-center justify-center w-[100%] px-0">
   <div class="flex gap-30 w-full justify-center">
-    <ButtonUI width-class="w-[30%]" word-class="Login" @update:word-class="updateValue"/>
-    <ButtonUI width-class="w-[30%]" word-class="Sign Up" @update:word-class="updateValue"/>
+    <ButtonUI width-class="w-[30%]" word-class="Login" @click="updateValue('Login')"/>
+    <ButtonUI width-class="w-[30%]" word-class="Sign Up" @click="updateValue('Sign Up')"/>
   </div>
   <div class="flex gap-30 w-full justify-center pt-3">
-    <a href="" class="font-bold text-blue-400 w-[30%] text-center">Forgot Password?</a>
+    <a href="" class="font-bold text-blue-400 w-[30%] text-center" @click.prevent="forgotPassClicked">Forgot Password?</a>
     <p class="w-[30%]"></p>
   </div>
 </div>

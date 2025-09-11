@@ -2,11 +2,11 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import StudentTopPageUI from '../components/Common/StudentTopPageUI.vue'
-import StudentRecordList from '../components/Common/StudentRecordList.vue';
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
+import MyInformationInputs from '../components/Common/MyInformationInputs.vue';
 
 const route = useRoute()
-const topPageTitle = ref('Your leave record');
+const topPageTitle = ref('User Information');
 const userName = ref(route.query.userName || '<Student Name>');
 const userType = ref(route.query.userType || '');
 console.log('user type is ' + userType.value);
@@ -24,7 +24,8 @@ const userMenuModalVisible = ref(false)
     <StudentTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
      @menu-clicked="userMenuModalVisible = true"/>
 
-    <StudentRecordList v-model:user-name="userName" v-model:user-type="userType"/>
+    <MyInformationInputs/>
+    
 
   </div>
 

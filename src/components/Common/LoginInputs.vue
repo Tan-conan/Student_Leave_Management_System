@@ -16,9 +16,9 @@ const emit = defineEmits(['update:userName','update:userPassword']);
 
   <p class="font-bold text-[90px] text-[var(--color-greenSoft)]">HavaBreak</p>
   <InputUI :input-value="props.userName" 
-    @update:input-value="val => emit('update:userName', val)" name-of-input="Username" width-class="w-[80%]"/>
+    @update:input-value="val => emit('update:userName', val)" name-of-placeholder="Username" width-class="w-[80%]"/>
   <InputUI :input-value="props.userPassword"
-    @update:input-value="val => emit('update:userPassword', val)" name-of-input="Password" width-class="w-[80%]"/>
+    @update:input-value="val => emit('update:userPassword', val)" name-of-placeholder="Password" width-class="w-[80%]"/>
 
 
 </div>
