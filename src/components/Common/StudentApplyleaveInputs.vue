@@ -10,9 +10,11 @@ import TextAreaUI from '../UI/TextAreaUI.vue';
 const router = useRouter()
 
 const props = defineProps({
- selectedDateRange:{type:Array, defult: [null, null]},
- requestName:{type:String, defult: ''},
- leaveReason:{type:String, defult: ''}
+ selectedDateRange:{type:Array, default: [null, null]},
+ requestName:{type:String, default: ''},
+ leaveReason:{type:String, default: ''},
+ userName:{type:String, default: ''},
+ userType:{type:String, default: ''},
 });
 
 const emit = defineEmits([
@@ -21,8 +23,14 @@ const emit = defineEmits([
     'update:leaveReason'
 ]);
 
-function backToLogin() {
-  router.push('/')
+function backToLeaveRecords() {
+    router.push({
+            path:'/StudentRecordPage',
+            query:{
+                userName:props.userName,
+                userType:props.userType
+            }
+    })
 }
 
 function passDate(val) {
@@ -38,7 +46,7 @@ function updateLeaveReason(val) {
 
 <template>
 <div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-10">
-    <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
+    <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRecords"/>
     <WordsUI word-class="Leave Balance:<Balance>"/>
 </div>
 

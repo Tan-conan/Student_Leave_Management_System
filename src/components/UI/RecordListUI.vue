@@ -7,7 +7,7 @@ const props = defineProps({
     leaveRecords:{type:Array, required:true},
     currentSortKey:{type:String, default:''},
     currentSortOrder:{type:String, default:'asc'},
-    widthClass:{type:String, default:'w-full'},
+    heightClass:{type:String, default:''},
 });
 
 const emit = defineEmits(['rowClicked','update:currentSortKey','update:currentSortOrder']);
@@ -29,14 +29,16 @@ function keyClicked(val) {
 </script>
 
 <template>
-  <div :class="['overflow-y-auto border-3 border-greenSoft',widthClass]">
+  <div :class="['overflow-y-auto border-3 border-greenSoft w-full select-none',heightClass]">
     <table class="w-full table-fixed border-greenSoft border-2 border-collapse">
 
       <!-- table heads -->
       <thead class="bg-greenSoft text-cream sticky top-0 z-10"> <!--sticky top-0 to make sure thead wont scroll-->
         <tr>
           <th v-for="head in tableHeads" :key="head.key" class="text-center cursor-pointer px-2 py-1"
-           @click="keyClicked(head.key)" :class="{ 'w-[50px]': head.key === 'id' }">
+           @click="keyClicked(head.key)" :class="{ 'w-[30px]': head.key === 'id' , 'w-[100px]': head.key === 'status' ,
+            'w-[50px]': head.key === 'leave_count' , 'w-[50px]': head.key === 'leave_days' , 'w-[500px]': head.key === 'email' ,
+            'w-[200px]': head.key === 'sid'}">
 
             <div class="flex gap-1 items-center justify-center select-none">
 
@@ -52,11 +54,10 @@ function keyClicked(val) {
 
       <!-- table body -->
       <tbody>
-        <tr v-for="row in leaveRecords" :key="row.id" class="border border-greenSoft
-         hover:bg-ivory h-[50px]" @dblclick="clickOnRow(row.id)">
+        <tr v-for="row in leaveRecords" :key="row.id ?? row.sid" class="border border-greenSoft
+         hover:bg-ivory h-[50px]" @dblclick="clickOnRow(row)">
 
-          <td v-for="head in tableHeads" :key="head.key" class="text-center text-greenSoft font-bold text-2xl px-2 py-1"
-          :class="{ 'w-[30px]': head.key === 'id' }">
+          <td v-for="head in tableHeads" :key="head.key" class="text-center text-greenSoft font-bold text-2xl px-2 py-1">
 
             <slot :name="`${head.key}`" :row="row" :value="row[head.key]">
               {{ row[head.key] }}

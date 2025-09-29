@@ -9,19 +9,9 @@ import RecordListUI from '../UI/RecordListUI.vue';
 const router = useRouter()
 
 const props = defineProps({
- userName:{type:String, defult: ''},
- userType:{type:String, defult: ''},
+ userName:{type:String, default: ''},
+ userType:{type:String, default: ''},
 });
-
-function applyLeave() {
-    router.push({
-        path:'/StudentApplyLeavePage',
-        query:{
-            userName:props.userName,
-            userType:props.userType,
-        }
-    })
-}
 
 // for sorting
 const currentSortKey = ref(''); // current sorting key
@@ -105,11 +95,20 @@ const manageRecords = computed(function(){
 })
 
 function backToLogin() {
+  localStorage.removeItem('user')
+  localStorage.removeItem('token')
   router.push('/')
 }
 
 function rowClickHandle(val) {
     alert('user click record with ID of ' + val)
+    router.push({
+            path:'/LeaveApprovalPage',
+            query:{
+                userName:props.userName,
+                userType:props.userType
+            }
+        })
 }
 
 function buttonClicked(val) {
@@ -149,7 +148,7 @@ watch(searchingValue,(newval) => {
     </div>
 
     <RecordListUI :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
-    v-model:current-sort-order="currentSortOrder" width-class="flex-1"  @row-clicked="rowClickHandle"/>
+    v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>
 
 </div>
 

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Local env files
 .env
+info.env
 .env.local
 .env.*.local
 

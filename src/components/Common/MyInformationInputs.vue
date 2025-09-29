@@ -9,9 +9,10 @@ import DropdownUI from '../UI/DropdownUI.vue';
 const router = useRouter()
 
 const props = defineProps({
- selectedDateRange:{type:Array, defult: [null, null]},
- requestName:{type:String, defult: ''},
- leaveReason:{type:String, defult: ''}
+ selectedDateRange:{type:Array, default: [null, null]},
+ requestName:{type:String, default: ''},
+ leaveReason:{type:String, default: ''},
+ userType:{type:String, default: ''},
 });
 
 const emit = defineEmits([
@@ -84,27 +85,27 @@ watch(status, (newVal) => {
     <div class="flex flex-col items-center w-[50%] mx-auto px-0 gap-2">
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Username"/>
-        <InputUI v-model:input-value="userName" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="userName" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Program"/>
-        <InputUI v-model:input-value="userProgram" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="userProgram" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Contact No"/>
-        <InputUI v-model:input-value="contactNo" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="contactNo" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Date Joined"/>
-        <InputUI v-model:input-value="dateJoined" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="dateJoined" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Assigned Course"/>
-        <InputUI v-model:input-value="assignedCourse" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="assignedCourse" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
     </div>
 
@@ -112,22 +113,23 @@ watch(status, (newVal) => {
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Role"/>
-        <InputUI v-model:input-value="userRole" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="userRole" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Email Address"/>
-        <InputUI v-model:input-value="emailAddress" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="emailAddress" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Session"/>
-        <InputUI v-model:input-value="session" width-class="flex-1" :disabled=false />
+        <InputUI v-model:input-value="session" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Status"/>
-        <DropdownUI :options="stateArray" v-model:dropdown-value="status"/> <!--if user not HOP, here change into disabled input-->>
+        <DropdownUI v-if="props.userType === 'HOP'" :options="stateArray" v-model:dropdown-value="status"/>
+        <InputUI v-else input-value="<status>" width-class="flex-1" :disabled=true />
     </div>
     </div>
 </div>

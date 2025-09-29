@@ -21,12 +21,12 @@ function updateValue(val){
 
     <div class="flex items-center gap-1">
         <WordsUI word-class="Student"/>
-        <RadioUI this-radio-value="Student" :current-radio-value="props.currentRadioValue" @update:currentRadioValue = "updateValue"/>
+        <RadioUI this-radio-value="student" :current-radio-value="props.currentRadioValue" @update:currentRadioValue = "updateValue"/>
     </div>
 
     <div class="flex items-center gap-1">
         <WordsUI word-class="Lecturer"/>
-        <RadioUI this-radio-value="Lecturer" :current-radio-value="props.currentRadioValue" @update:currentRadioValue = "updateValue"/>
+        <RadioUI this-radio-value="lecturer" :current-radio-value="props.currentRadioValue" @update:currentRadioValue = "updateValue"/>
     </div>
     
 </div>

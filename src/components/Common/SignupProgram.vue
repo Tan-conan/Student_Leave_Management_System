@@ -1,18 +1,28 @@
 <script setup>
 import WordsUI from '../UI/WordsUI.vue';
 import DropdownUI from '../UI/DropdownUI.vue';
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits, onMounted } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
   dropdownValue:{type:String, default:''},
 });
 
 const emit = defineEmits(['update:dropdownValue']);
-const programList = ref(['one','two','three','four'])
+const programList = ref([])
 
 function updateselection(val){
     emit('update:dropdownValue',val)
 }
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/api/auth/programs')
+    programList.value = res.data.map(item => item.program_name);
+  } catch (err) {
+    console.error('fetch program error', err)
+  }
+})
 
 </script>
 

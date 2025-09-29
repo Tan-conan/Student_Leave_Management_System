@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import StudentTopPageUI from '../components/Common/StudentTopPageUI.vue'
+import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import MyInformationInputs from '../components/Common/MyInformationInputs.vue';
 
@@ -21,10 +21,10 @@ const userMenuModalVisible = ref(false)
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
      @update:user-menu-modal-visible="userMenuModalVisible = false"/>
 
-    <StudentTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
+    <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
      @menu-clicked="userMenuModalVisible = true"/>
 
-    <MyInformationInputs/>
+    <MyInformationInputs v-model:user-type="userType"/>
     
 
   </div>

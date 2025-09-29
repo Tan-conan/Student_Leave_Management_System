@@ -31,7 +31,8 @@ const titleName = computed( function() {
 </script>
 
 <template>
-<div class="flex items-center w-[100%] mx-auto px-0 justify-between bg-ivory">
+<div class="flex items-center w-[100%] mx-auto px-0 justify-between h-[50px] shrink-0 bg-ivory"> 
+  <!--shrink 0 let toppageui height really = h-[50px]-->
     <div class="flex gap-5">
         <MenuDot @menu-clicked="handleMenuCLicking"/>
         <WordsUI :word-class="topPageTitle"/>

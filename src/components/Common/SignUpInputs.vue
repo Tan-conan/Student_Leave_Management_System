@@ -1,4 +1,5 @@
 <script setup>
+import DatePicker from '../UI/DatePicker.vue';
 import InputUI from '../UI/InputUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 import { ref, defineProps, defineEmits } from 'vue'
@@ -10,6 +11,8 @@ const props = defineProps({
   userConfirmPass:{type:String, default:''},
   userSID:{type:String, default:''},
   userContactNum:{type:String, default:''},
+  currentRadioValue:{type:String, default:''},
+  joinDate:{type:[String, Number], default:null},
 });
 
 const emit = defineEmits([
@@ -19,6 +22,7 @@ const emit = defineEmits([
 'update:userConfirmPass',
 'update:userSID',
 'update:userContactNum',
+'update:joinDate'
 ]);
 
 </script>
@@ -59,17 +63,25 @@ const emit = defineEmits([
     </div>
 
     <div class="flex w-[100%]">
-
         <div class="flex w-[50%]">
+            <WordsUI word-class="Contact No"/>
+            <InputUI :input-value="props.userContactNum" @update:input-value="val => emit('update:userContactNum', val)" 
+            name-of-input="e.g. 6012-345-6789" width-class="flex-1"/>
+        </div>
+
+        <div v-if="currentRadioValue === 'student'" class="flex w-[50%]">
             <WordsUI word-class="Student ID"/>
             <InputUI :input-value="props.userSID" @update:input-value="val => emit('update:userSID', val)" 
             name-of-input="e.g. ID123456" width-class="flex-1"/>
         </div>
 
-        <div class="flex w-[50%]">
-            <WordsUI word-class="Contact No"/>
-            <InputUI :input-value="props.userContactNum" @update:input-value="val => emit('update:userContactNum', val)" 
-            name-of-input="e.g. 6012-345-6789" width-class="flex-1"/>
+    </div>
+
+    <div class="flex w-[100%]">
+
+        <div class="flex w-[50%] items-center">
+            <WordsUI word-class="Join Date"/>
+            <DatePicker type="date" :joinDate="joinDate" @update:date-value="val => emit('update:joinDate', val)" :dateValue="joinDate" width-class="flex-1"/>
         </div>
 
     </div>

@@ -3,7 +3,7 @@ import { defineProps, defineEmits } from 'vue'
 import { NDatePicker } from 'naive-ui'
 
 const props = defineProps({
-  dateValue:{type: [String, Array], default: ''}, //string for single date array for area of date
+  dateValue:{type: [Number, String, Array], default: null}, //string for single date array for area of date
   type:{ type: String, default: '', required: true}, //single(date) or area(daterange)
   placeholder:{type: String, default: 'Select date'},
   widthClass:{type: String, default: 'w-auto'}

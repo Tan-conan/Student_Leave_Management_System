@@ -1,14 +1,35 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import StudentTopPageUI from '../components/Common/StudentTopPageUI.vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import LeaveRequestsList from '../components/Common/LeaveRequestsList.vue';
+// lecturer/hop student requests page
 
 const route = useRoute()
+const router = useRouter()
+
+const storedUserInfo = localStorage.getItem('user') // fetch local storage user data
+const userInfo = storedUserInfo ? JSON.parse(storedUserInfo) : null // if info exist parse it else return null
+
+const userName = ref('');
+const userType = ref('');
+const userProgramId = ref('')
+
+onMounted(() => {
+
+    if(!userInfo) {
+        alert('user info unfound, back to login page.')
+        router.push('/')
+    } else {
+        userName.value = userInfo.name || '<user Name>';
+        userType.value = userInfo.role || '';
+        userProgramId.value = userInfo.program || '';
+    }
+})
+
 const topPageTitle = ref('Student leave requests');
-const userName = ref(route.query.userName || '<Lecturer/HOP Name>');
-const userType = ref(route.query.userType || '');
+
 console.log('user type is ' + userType.value);
 
 const userMenuModalVisible = ref(false)
@@ -21,10 +42,10 @@ const userMenuModalVisible = ref(false)
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
      @update:user-menu-modal-visible="userMenuModalVisible = false"/>
 
-    <StudentTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
+    <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
      @menu-clicked="userMenuModalVisible = true"/>
 
-    <LeaveRequestsList v-model:user-name="userName"/>
+    <LeaveRequestsList v-model:user-name="userName" v-model:user-type="userType" />
 
   </div>
 

@@ -1,35 +1,38 @@
 <script setup>
 import ButtonUI from '../UI/ButtonUI.vue';
-import { useRouter } from 'vue-router'
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, defineProps } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
-const router = useRouter()
+const props = defineProps({
+    userType:{type:String, default: ''},
+    leaveFiles:{type:Array, default: []},
+    confirmFileModalVisible:{type:Boolean, default:false},
+});
+
+const emit = defineEmits(['update:confirmFileModalVisible'])
 
 // for sorting
 const currentSortKey = ref(''); // current sorting key
 const currentSortOrder = ref('asc'); // asc for ascending, desc for descending
 
-const tableHeads = ref([
+const finalTableHeads = ref([
     // key better dont have spacing, use _
     {key:'id' , label:'ID'},
     {key:'file_name' , label:'File Name'},
-    {key:'checkbox' , label:'Delete'},
 ])
 
-const leaveFiles = ref([
-  {id: 1 , file_name: 'medical_certificate.pdf' , checkbox: false},
-  {id: 2 , file_name: 'parent_letter.jpg' , checkbox: false},
-  {id: 3 , file_name: 'event_approval_form.pdf' , checkbox: false},
-  {id: 4 , file_name: 'accident_report.png' , checkbox: false}
-])
-
-
+// if student add checkbox column
+const tableHeads = computed(() => {
+  if (props.userType === 'Student') {
+    return [...finalTableHeads.value, { key: 'checkbox', label: 'Delete' }];
+  }
+  return finalTableHeads.value;
+});
 
 // managing user filter, search and sort functions at once
 const manageFiles = computed(function(){
-    let filteredRecords = leaveFiles.value
+    let filteredRecords = props.leaveFiles
 
     if (currentSortKey.value) { // if user got sort then calculate this  
         filteredRecords = [...filteredRecords].sort((a,b) => {
@@ -58,11 +61,15 @@ const manageFiles = computed(function(){
 })
 
 function rowClickHandle(val) {
-    alert('user click record with ID of ' + val)
+    
 }
 
 function addnewFile(val) {
     console.log('a button is clicked which is ' + val)
+}
+
+function confirmDeleteFiles() {
+  emit('update:confirmFileModalVisible', true);
 }
 
 </script>
@@ -73,12 +80,12 @@ function addnewFile(val) {
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
         <WordsUI word-class="Attached Files"/>
-        <ButtonUI word-class="Add new file" width-class="w-auto" @update:word-class="addnewFile"/>
+        <ButtonUI v-if="props.userType === 'Student'" word-class="Add new file" width-class="w-auto" @update:word-class="addnewFile"/>
 
     </div>
 
     <RecordListUI :table-heads="tableHeads" :leave-records="manageFiles" v-model:current-sort-key="currentSortKey"
-    v-model:current-sort-order="currentSortOrder" width-class="h-50"  @row-clicked="rowClickHandle">
+    v-model:current-sort-order="currentSortOrder" height-class="h-50"  @row-clicked="rowClickHandle">
 
     <template #checkbox="{ row, value }">
         <input type="checkbox" class="scale-150" v-model="row.checkbox" />
@@ -87,7 +94,7 @@ function addnewFile(val) {
     </RecordListUI>
 
     <div class="flex justify-end w-[100%]">
-        <ButtonUI word-class="Delete Selected Files" width-class="w-auto"/>
+        <ButtonUI v-if="props.userType === 'Student'" word-class="Delete Selected Files" width-class="w-auto" @update:word-class="confirmDeleteFiles"/>
     </div>
 
 </div>

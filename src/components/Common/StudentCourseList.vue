@@ -2,11 +2,19 @@
 import ButtonUI from '../UI/ButtonUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, defineEmits } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
 const router = useRouter()
+
+const props = defineProps({
+ courseList:{type:Array, required:true},
+ selectedCourseList:{type:Array, default:[]},
+ confirmCourseModalVisible:{type:Boolean, default:false},
+});
+
+const emit = defineEmits(['update:confirmCourseModalVisible','update:selectedCourseList'])
 
 // for sorting
 const currentSortKey = ref(''); // current sorting key
@@ -24,20 +32,9 @@ const tableHeads = ref([
     {key:'checkbox' , label:'Check To Enrol'},
 ])
 
-const CourseList = ref([
-  { id: 1, course_name: "Database Systems", lecturer_name: "Dr. Tan", checkbox: false },
-  { id: 2, course_name: "Operating Systems", lecturer_name: "Prof. Lim", checkbox: false },
-  { id: 3, course_name: "Computer Networks", lecturer_name: "Dr. Wong", checkbox: false },
-  { id: 4, course_name: "Software Engineering", lecturer_name: "Dr. Lee", checkbox: false },
-  { id: 5, course_name: "Artificial Intelligence", lecturer_name: "Dr. Chan", checkbox: false },
-  { id: 6, course_name: "Human Computer Interaction", lecturer_name: "Prof. Ong", checkbox: false }
-]);
-
-
-
 // managing user filter, search and sort functions at once
 const manageCoursesList = computed(function(){
-    let filteredCourses = CourseList.value
+    let filteredCourses = props.courseList
 
     if (searchValue.value) { // if user got search then calculate this  
         filteredCourses = filteredCourses.filter(function(row){
@@ -76,7 +73,7 @@ function backToLogin() {
 }
 
 function rowClickHandle(val) {
-    alert('user click record with ID of ' + val)
+    return;
 }
 
 function buttonClicked(val) {
@@ -87,8 +84,12 @@ function buttonClicked(val) {
 }
 
 function fetchCheckedCourses() {
-const selectedCourse = manageCoursesList.value.filter(r => r.checkbox).map(r => r.course_name);
-  alert("selected course: " + selectedCourse.join(", "));
+  const selectedCourse = manageCoursesList.value
+    .filter(r => r.checkbox)
+    .map(r => r.course_name);
+
+  emit('update:selectedCourseList', selectedCourse);
+  emit('update:confirmCourseModalVisible', true);
 }
 
 watch(searchingValue,(newval) => {
@@ -119,10 +120,10 @@ watch(searchingValue,(newval) => {
     </div>
 
     <RecordListUI :table-heads="tableHeads" :leave-records="manageCoursesList"  v-model:current-sort-key="currentSortKey"
-    v-model:current-sort-order="currentSortOrder" width-class="h-100" @row-clicked="rowClickHandle">
+    v-model:current-sort-order="currentSortOrder" height-class="h-100" @row-clicked="rowClickHandle">
 
         <template #checkbox="{ row, value }">
-            <input type="checkbox" class="scale-150" v-model="row.checkbox" />
+            <input type="checkbox" class="scale-150" v-model="row.checkbox"/>
         </template>
 
     </RecordListUI>
