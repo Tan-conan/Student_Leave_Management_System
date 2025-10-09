@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Student (
   password_hash  VARCHAR(255) NOT NULL,
   leave_balance  INT DEFAULT 0,
   date_join      DATE NULL,
-  student_state  VARCHAR(20) DEFAULT 'active',
+  student_status  VARCHAR(20) DEFAULT 'pending',
   created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_student_program

@@ -21,6 +21,21 @@ const clickedButtonValue = ref('') // detect which button clicked
 const forgotPassModalVisible = ref(false) // toggle forgot password modals on and off
 const noRoleModalVisible = ref(false)
 
+const confirmationModal = ref({
+  visible: false,
+  title: '',
+  message: '',
+  action: null, //functions
+  modalType: 'confirmation',
+})
+
+function confirmModal() {
+  if (confirmationModal.value.action) {
+    confirmationModal.value.action()
+  }
+  confirmationModal.value.visible = false;
+}
+
 watch(userEmail, (newVal) => {
   console.log('userEmail is now:', newVal)
 })
@@ -49,10 +64,6 @@ function goSignUp() {
 }
 
 async function userLogin() {
-  if (!currentRadioValue.value) {
-    return noRoleModalVisible.value = true;
-  }
-
   try {
     const res = await axios.post('http://localhost:3000/api/auth/login', {
       role: currentRadioValue.value,
@@ -60,14 +71,34 @@ async function userLogin() {
       password: userPassword.value,
     })
 
+    if(!res.data.successfully) {
+      confirmationModal.value = {
+      visible: true,
+      title: 'Login Warning',
+      message: res.data.message,
+      action: null,
+      modalType: 'warning',
+    }
+    return;
+    }
+
     //if login success
-    alert('Login success: ' + res.data.message)
     localStorage.setItem('token', res.data.token) // token data for backend use
     localStorage.setItem('user', JSON.stringify(res.data.user)) // user data only for frontend displayment and user role
 
     const userInformation = res.data.user
 
-    switch(userInformation.role){
+    confirmationModal.value = {
+      visible: true,
+      title: 'Login Success',
+      message: res.data.message,
+      action: null,
+      modalType: 'warning',
+    }
+
+    watch(() => confirmationModal.value.visible, (newVal) => {
+      if(newVal === false) {
+      switch(userInformation.role){
       case 'student':
         router.push('/StudentRecordPage')
         break;
@@ -75,7 +106,10 @@ async function userLogin() {
       case 'hop':
         router.push('/LeaveRequestsPage')
         break;
-}
+      }
+    }
+    })
+
   } catch (err) { // catch error if failed
     console.error(err)
     alert('Login failed: ' + (err.response?.data?.message || err.message))
@@ -95,8 +129,8 @@ onMounted(() => {
 
   <LoginModals v-model:forgot-pass-modal-visible="forgotPassModalVisible"/>
 
-  <ComfirmationModal modal-title="Role Unselected" modal-message="Please select a role to login!" 
-   modal-type="Warning" v-model:confirmationModalVisible="noRoleModalVisible"/>
+  <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
+  :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
   <div class="flex w-full h-screen">
 

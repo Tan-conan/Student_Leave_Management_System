@@ -10,10 +10,10 @@ const props = defineProps({
     heightClass:{type:String, default:''},
 });
 
-const emit = defineEmits(['rowClicked','update:currentSortKey','update:currentSortOrder']);
+const emit = defineEmits(['row-clicked','update:currentSortKey','update:currentSortOrder']);
 
 function clickOnRow(val){
-    emit('rowClicked', val)
+    emit('row-clicked', val)
 }
 
 function keyClicked(val) {

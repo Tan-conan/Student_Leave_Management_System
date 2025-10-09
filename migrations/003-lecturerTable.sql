@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Lecturer (
   contact_no      VARCHAR(20) NULL,
   password_hash   VARCHAR(255) NOT NULL,
   date_join       DATE NULL,
-  lecturer_status VARCHAR(20) DEFAULT 'active',
+  lecturer_status VARCHAR(20) DEFAULT 'pending',
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_lecturer_program

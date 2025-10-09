@@ -9,22 +9,18 @@ const props = defineProps({
   modalTitle:{type:String, default: ''},
   modalType:{type:String, default: 'confirmation'},
   modalMessage:{type:String, default: ''},
-  confirmationModalVisible:{type:Boolean, default:false},
+  modelVisible:{type:Boolean, default: false},
 });
 
-const emit = defineEmits(['update:confirmationModalVisible'])
-
-function MenuClosing(){
-    emit('update:confirmationModalVisible',false)
-}
+const emit = defineEmits(['confirm', 'update:modelVisible'])
 
 </script>
 
 <template>
 
-  <ModalUI name="course information" :visible="confirmationModalVisible" width-class="w-auto" height-class="h-auto">
+  <ModalUI name="course information" :visible="modelVisible" height-class="h-auto">
     <div class="flex gap-2">
-        <ModalCloseUI @close-modal="MenuClosing"/>
+        <ModalCloseUI @close-modal="emit('update:modelVisible', false)"/>
         <WordsUI :word-class="modalTitle"/>
     </div>
 
@@ -35,12 +31,12 @@ function MenuClosing(){
     <div class="h-2"></div>
 
     <div v-if="modalType === 'confirmation'" class="flex gap-2 justify-end">
-        <ButtonUI word-class="Yes"/>
-        <ButtonUI word-class="No" @update:word-class="MenuClosing"/>
+        <ButtonUI word-class="Yes" @click="() => { console.log('modal emit confirm'); emit('confirm') }"/>
+        <ButtonUI word-class="No" @click="emit('update:modelVisible', false)"/>
     </div>
 
     <div v-else class="flex justify-end">
-        <ButtonUI word-class="OK" width-class="w-[20%]" @update:word-class="MenuClosing"/>
+        <ButtonUI word-class="OK" width-class="w-[20%]" @update:word-class="emit('update:modelVisible', false)"/>
     </div>
 
   </ModalUI>

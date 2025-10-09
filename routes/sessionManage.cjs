@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const sessionManageConroller = require('../controllers/sessionManageConroller.cjs');
+const sessionManageController = require('../controllers/sessionManageController.cjs');
 
-router.post('/createSession', sessionManageConroller.createSession);
+router.post('/createSession', sessionManageController.createSession);
+router.post('/fetchCurrentSession', sessionManageController.fetchCurrentSession);
+router.post('/fetchHolidays', sessionManageController.fetchHolidays);
+router.post('/addHoliday', sessionManageController.addHoliday);
+router.post('/editHoliday', sessionManageController.editHoliday);
+router.post('/deleteHoliday', sessionManageController.deleteHoliday);
 
 module.exports = router;

@@ -13,7 +13,7 @@ const props = defineProps({
   selectedDateRange:{type:Array, default: [null, null]},
 });
 
-const emit = defineEmits(['update:selectedDateRange','update:holidayName', 'deleteHoliday', 'saveHoliday'])
+const emit = defineEmits(['update:selectedDateRange','update:holidayName', 'deleteHoliday', 'saveHoliday', 'update:userMenuModalVisible'])
 
 function MenuClosing(){
     emit('update:userMenuModalVisible',false)
@@ -32,12 +32,12 @@ function MenuClosing(){
     <div class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
         <div class="flex gap-2">
             <WordsUI word-class="Holiday Name:"/>
-            <InputUI :input-value="`${holidayName}`" width-class="flex-1"/>
+            <InputUI :input-value="`${holidayName}`" width-class="flex-1" @update:input-value="val => emit('update:holidayName', val)"/>
         </div>
         <div class="flex gap-2">
             <WordsUI word-class="holiday Date Range"/>
             <DatePicker :date-value="selectedDateRange" width-class="flex-1" type="daterange" 
-             placeholder="Select date range" @update:date-value=""/>
+             placeholder="Select date range" @update:date-value="val => emit('update:selectedDateRange', val)"/>
         </div>
         
     </div>

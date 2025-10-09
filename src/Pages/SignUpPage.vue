@@ -7,6 +7,7 @@ import ButtonUI from '../components/UI/ButtonUI.vue'
 import SignUpInputs from '../components/Common/SignUpInputs.vue'
 import SignupProgram from '../components/Common/SignupProgram.vue'
 import SignupCheckboxes from '../components/Common/SignupCheckboxes.vue'
+import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
 
 const router = useRouter()
 
@@ -23,6 +24,21 @@ const userContactNum = ref('')
 const dropdownValue = ref('')
 const currentRadioValue = ref('')
 const joinDate = ref(null)
+
+const confirmationModal = ref({
+  visible: false,
+  title: '',
+  message: '',
+  action: null, //functions
+  modalType: 'confirmation',
+})
+
+function confirmModal() {
+  if (confirmationModal.value.action) {
+    confirmationModal.value.action()
+  }
+  confirmationModal.value.visible = false;
+}
 
 watch(userName, (newVal) => {
   console.log('userName is now:', newVal)
@@ -63,13 +79,18 @@ watch(joinDate, (newVal) => {
 async function registerUser() {
   // password not = confirm pass, reject
   if (userPassword.value !== userConfirmPass.value) {
-    alert('Password and Confirm Password do not match!')
+    confirmationModal.value = {
+      visible: true,
+      title: 'Siggn up warning',
+      message: 'Password and Confirm Password do not match!',
+      action: null,
+      modalType: 'warning',
+    }
     return
   }
 
   const date = new Date(joinDate.value)
   const formattedDate = date.toLocaleDateString('en-CA') // to local date
-
 
   try {
     const res = await axios.post('http://localhost:3000/api/auth/register', {
@@ -85,9 +106,34 @@ async function registerUser() {
       leave_balance: 10
     })
 
+    if(!res.data.successfully) {
+      confirmationModal.value = {
+      visible: true,
+      title: 'Sign up Warning',
+      message: res.data.message,
+      action: null,
+      modalType: 'warning',
+    }
+    return;
+    }
+
     //if register success
-    alert('Register success: ' + res.data.message)
-    router.push('/')
+    confirmationModal.value = {
+      visible: true,
+      title: 'Sign up completed',
+      message: res.data.message,
+      action: null,
+      modalType: 'warning',
+    }
+
+    console.log('visible:', confirmationModal.value.visible )
+    watch(() => confirmationModal.value.visible, (newVal) => {
+      console.log('visible:', confirmationModal.value.visible )
+      if(newVal === false) {
+        router.push('/')
+      }
+    })
+    
   } catch (err) { // catch error if failed
     console.error(err)
     alert('Register failed: ' + (err.response?.data?.message || err.message))
@@ -97,6 +143,9 @@ async function registerUser() {
 </script>
 
 <template>
+  <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
+  :modal-message="confirmationModal.message" @confirm="confirmModal"/>
+
   <div class="flex flex-col gap-5">
     <p></p>
     <ButtonUI word-class="Back to Login" width-class="w-[20%]" @click="backToLogin"/>

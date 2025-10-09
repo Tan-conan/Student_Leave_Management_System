@@ -8,6 +8,10 @@ import DatePicker from '../UI/DatePicker.vue';
 const props = defineProps({
     sessionName:{type:String, default:''},
     sessionDate:{type:Array, default: [null, null]},
+    currentSessionName:{type:String, default:''},
+    currentSessionStartDate:{type:String, default:''},
+    currentSessionEndDate:{type:String, default:''},
+    currentSessionState:{type:String, default:''},
 })
 
 const emit = defineEmits(['update:sessionDate','startSession','update:sessionName'])
@@ -31,22 +35,26 @@ function passDate(val) {
     </div>
     <div class="flex flex-col">
         <WordsUI word-class="Caution:"/>
-        <WordsUI word-class=" once a new Session starts unable to edit the start date and end date until the end of session!"/>
+        <WordsUI word-class=" once a new Session starts unable to start another new session until current one ends!"/>
     </div>
 
     <div class="flex flex-col bg-ivory rounded-2xl border-greenSoft border-2">
         <WordsUI word-class="Current session"/>
         <div class="flex gap-2">
             <WordsUI word-class="Session Name:"/>
-            <WordsUI word-class="<session name>"/>
+            <WordsUI :word-class="currentSessionName"/>
         </div>
         <div class="flex gap-2">
             <WordsUI word-class="Start Date:"/>
-            <WordsUI word-class="<start date>"/>
+            <WordsUI :word-class="currentSessionStartDate"/>
         </div>
         <div class="flex gap-2">
             <WordsUI word-class="End Date:"/>
-            <WordsUI word-class="<end date>"/>
+            <WordsUI :word-class="currentSessionEndDate"/>
+        </div>
+        <div class="flex gap-2">
+            <WordsUI word-class="Current State:"/>
+            <WordsUI :word-class="currentSessionState"/>
         </div>
     </div>
     

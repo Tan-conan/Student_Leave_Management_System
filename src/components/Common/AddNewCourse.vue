@@ -1,10 +1,15 @@
 <script setup>
-import { ref, watch, defineEmits} from 'vue'
+import { ref, watch, defineEmits, defineProps} from 'vue'
 import WordsUI from '../UI/WordsUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import ButtonUI from '../UI/ButtonUI.vue';
 
-const emit = defineEmits(['createCourse'])
+const props = defineProps({
+ newCourseName:{type:String, default: ''},
+ newCourseCode:{type:String, default: ''}
+});
+
+const emit = defineEmits(['createCourse','update:newCourseName','update:newCourseCode'])
 
 </script>
 
@@ -13,11 +18,11 @@ const emit = defineEmits(['createCourse'])
     <WordsUI word-class="Add New Course"/>
     <div class="flex gap-2">
         <WordsUI word-class="Course Name:"/>
-        <InputUI width-class="flex-1"/>
+        <InputUI width-class="flex-1" :input-value="newCourseName" @update:input-value="val => emit('update:newCourseName',val)"/>
     </div>
     <div class="flex gap-2">
         <WordsUI word-class="Course Code :"/>
-        <InputUI width-class="flex-1"/>
+        <InputUI width-class="flex-1" :input-value="newCourseCode" @update:input-value="val => emit('update:newCourseCode',val)"/>
     </div>
     <div class="flex-1"></div>
     <div class="flex justify-end">

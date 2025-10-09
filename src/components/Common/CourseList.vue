@@ -5,6 +5,7 @@ import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
 import { ref, computed, watch, defineProps, defineEmits } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
+import WordsUI from '../UI/WordsUI.vue';
 
 const router = useRouter()
 
@@ -28,13 +29,8 @@ const currentSortOrder = ref('asc'); // asc for ascending, desc for descending
 const searchValue = ref('') // confirmed search value
 const searchingValue = ref('') // user still typing searching value
 
-// for filtering
-const filterList = ref(['None','Pending','Approved','Rejected','Annual','Medical']) // dropdown filter menu
-const filterValue = ref('') // current selected filter keyword
-
 const tableHeads = ref([
     // key better dont have spacing, use _
-    {key:'id' , label:'ID'},
     {key:'course_code' , label:'Course Code'},
     {key:'course_name' , label:'Course Name'},
     {key:'current_lecturer' , label:'Current Lecturer'},
@@ -43,12 +39,6 @@ const tableHeads = ref([
 // managing user filter, search and sort functions at once
 const manageRecords = computed(function(){
     let filteredRecords = props.courseList
-
-    if (filterValue.value && filterValue.value !== 'None') {  // if user got filter then calculate this  
-        filteredRecords = filteredRecords.filter(function(row){
-          return row.status === filterValue.value || row.type === filterValue.value
-        })
-    }
 
     if (searchValue.value) { // if user got search then calculate this  
         filteredRecords = filteredRecords.filter(function(row){
@@ -117,11 +107,9 @@ watch(searchingValue,(newval) => {
             <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
         </div>
 
-        <div class="flex items-center justify-center gap-1 w-[70%]">
+        <div class="flex items-center justify-center gap-1 w-[50%]">
 
-            <DropdownUI v-model:dropdown-value = 'filterValue' :options="filterList" placeholder="Filter By"width-class="w-[30%]"/>
-
-            <InputUI v-model:input-value="searchingValue" name-of-placeholder="Search by name" 
+            <InputUI v-model:input-value="searchingValue" name-of-placeholder="Search by course name" 
             width-class="flex-1" @keyup.enter="buttonClicked('Search')"/>
 
             <ButtonUI word-class="Search" width-class="w-auto" @update:word-class="buttonClicked"/>
@@ -129,7 +117,10 @@ watch(searchingValue,(newval) => {
         </div>
     </div>
 
-    <RecordListUI :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
+    <div v-if="courseList.length === 0" class="flex items-center justify-center w-full h-85 border-greenSoft border-2 bg-ivory">
+        <WordsUI word-class="currently no course available for this program"/>
+    </div>
+    <RecordListUI v-else :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="h-85"  @row-clicked="rowClickHandle"/>
 
 </div>
