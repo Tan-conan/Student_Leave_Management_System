@@ -6,7 +6,7 @@ import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import StudentManageList from '../components/Common/StudentManageList.vue';
 import PendingUserModal from '../components/Common/PendingUserModal.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
-import axios from 'axios'
+import api from '../api/axios.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +25,34 @@ const userSessionName = ref('none')
 
 const studentList = ref([])
 
-onMounted(() => {
+// user token verifier
+async function verifyToken() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token detected, back to login page.')
+    router.push('/')
+    return false
+  }
+
+  try {
+    const res = await api.get('/mainFunction/verify')
+    console.log('Token valid, user info:', res.data.user)
+    return true
+  } catch (err) {
+    console.error('Token invalid or expired:', err)
+    alert('Session expired, please log in again.')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/')
+    return false
+  }
+}
+
+// check got userinfo or not, no back to login page
+// fetch current session and holidays
+onMounted(async () => {
+  const valid = await verifyToken()
+  if (!valid) return
 
   if(!userInfo) {
       alert('user info unfound, back to login page.')
@@ -45,24 +72,33 @@ onMounted(() => {
   } else {
     userSessionName.value = 'none'
   }
+
 })
 
 // check session is 
 async function sessionChecker() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token found, please login again.')
+    router.push('/')
+    return
+  }
+
   try {
-    const res = await axios.post('http://localhost:3000/api/mainFunction/sessionChecker', {
-      programId: userProgramId.value,
-      sessionId: userSessionID.value
-    })
+    const res = await api.post('/mainFunction/sessionChecker')
 
-    console.log('session id received will be ', res.data.session_id )
-
-    console.log('session_status received will be ', res.data.session_status )
+    // if new token given, replace with old one
+    if (res.data.updated && res.data.token) {
+      localStorage.setItem('token', res.data.token);
+    }
 
     // still did not detect any activated/unactivated session
     if (res.data.session_id === 'none') {
+      userSessionID.value = 'none'
       userSessionStatus.value = 'none'
-      userSessionStatus.value = 'none'
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
 
     } else if (res.data.session_status === 'ended') { // found current session is ended
       alert('no current ongoing session, back to login page')
@@ -71,20 +107,21 @@ async function sessionChecker() {
     } else { // update current session status
       userSessionID.value = res.data.session_id
       userSessionStatus.value = res.data.session_status
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
     }
 
   } catch (err) {
-    console.error(err);
-    alert('Session error: ' + (err.response?.data?.message || err.message));
+    alert('Session check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
   }
 }
 
 async function fetchStudentsList() {
   try {
 
-    const res = await axios.post('http://localhost:3000/api/studentManage/fetchStudentsList', {
-      programID: userProgramId.value,
-    })
+    const res = await api.post('/studentManage/fetchStudentsList')
 
     const data = res.data.students
 
@@ -144,7 +181,7 @@ function approveModal() {
 async function approveStudent() {
   await sessionChecker();
   try {
-    const res = await axios.post('http://localhost:3000/api/studentManage/approveStudent', {
+    const res = await api.post('/studentManage/approveStudent', {
       student_id: selectedStudentRow.value.student_id,
     })
 
@@ -178,7 +215,7 @@ function rejectModal() {
 async function rejectStudent() {
   await sessionChecker();
   try {
-    const res = await axios.post('http://localhost:3000/api/studentManage/deleteStudent', {
+    const res = await api.post('/studentManage/deleteStudent', {
       student_id: selectedStudentRow.value.student_id,
     })
 
@@ -210,8 +247,15 @@ function rowClickHandle(row) {
     pendingType.value = 'Lecturer';
     console.log('pending type' + pendingType.value)
     studentPendingModalVisible.value = true;
+  } else {
+    router.push({
+            path:'/UserInformationPage',
+            query: { 
+              studentId: row.student_id ,
+              viewerType: 'hop',
+            }
+          })
   }
-    
 }
 
 </script>

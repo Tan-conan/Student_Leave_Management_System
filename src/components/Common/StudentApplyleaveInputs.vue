@@ -5,6 +5,7 @@ import DatePicker from '../UI/DatePicker.vue';
 import { useRouter } from 'vue-router'
 import { ref, defineProps, defineEmits } from 'vue'
 import WordsUI from '../UI/WordsUI.vue';
+import DropdownUI from '../UI/DropdownUI.vue';
 import TextAreaUI from '../UI/TextAreaUI.vue';
 
 const router = useRouter()
@@ -12,16 +13,31 @@ const router = useRouter()
 const props = defineProps({
  selectedDateRange:{type:Array, default: [null, null]},
  requestName:{type:String, default: ''},
+ leaveType:{type:String, default: ''},
  leaveReason:{type:String, default: ''},
  userName:{type:String, default: ''},
  userType:{type:String, default: ''},
+ userCurrentLeave:{type:[String, Number], default: ''},
+ userPredictedLeave:{type:[String, Number], default: ''},
+ requestValidLeaveDay:{type:[String, Number], default: ''}
 });
 
 const emit = defineEmits([
     'update:selectedDateRange',
     'update:requestName',
-    'update:leaveReason'
+    'update:leaveReason',
+    'update:leaveType'
 ]);
+
+const leaveTypeArray = ref([
+    'sick leave',
+    'emergency leave',
+    'personal leave',
+    'family leave',
+    'official leave',
+    'study leave',
+    'other'
+])
 
 function backToLeaveRecords() {
     router.push({
@@ -45,14 +61,22 @@ function updateLeaveReason(val) {
 </script>
 
 <template>
-<div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-10">
+<div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-5">
     <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRecords"/>
-    <WordsUI word-class="Leave Balance:<Balance>"/>
+    <div class="flex">
+        <WordsUI word-class="Leave Balance:"/>
+        <WordsUI :word-class="userCurrentLeave" width-class="flex-1"/>
+    </div>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="Request Name"/>
-    <InputUI :input-value="requestName" width-class="flex-1" @update:input-value="emit('update:requestName',val)"/>
+    <InputUI :input-value="requestName" width-class="flex-1" @update:input-value="val => emit('update:requestName',val)"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Leave Type"/>
+    <DropdownUI :options="leaveTypeArray" :dropdown-value="leaveType" @update:dropdown-value="val => emit('update:leaveType', val)"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
@@ -61,8 +85,13 @@ function updateLeaveReason(val) {
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Predicted Leave Balance:"/>
+    <WordsUI :word-class="userPredictedLeave"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="Valid leave Day:"/>
-    <WordsUI word-class="(Days of leave after deducted holidays and weekends)"/>
+    <WordsUI :word-class="requestValidLeaveDay"/>
 </div>
 
 <WordsUI word-class="Reason to leave:"/>

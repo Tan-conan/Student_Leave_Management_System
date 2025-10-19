@@ -8,13 +8,14 @@ import DatePicker from '../UI/DatePicker.vue';
 const props = defineProps({
     sessionName:{type:String, default:''},
     sessionDate:{type:Array, default: [null, null]},
+    sessionLeaveBalance:{type:String, default: ''},
     currentSessionName:{type:String, default:''},
     currentSessionStartDate:{type:String, default:''},
     currentSessionEndDate:{type:String, default:''},
     currentSessionState:{type:String, default:''},
 })
 
-const emit = defineEmits(['update:sessionDate','startSession','update:sessionName'])
+const emit = defineEmits(['update:sessionDate','startSession','update:sessionName','update:sessionLeaveBalance'])
 
 function passDate(val) {
     emit('update:sessionDate', val)
@@ -32,6 +33,10 @@ function passDate(val) {
     <div class="flex gap-2 items-center">
         <WordsUI word-class="Start Date :"/>
         <DatePicker :date-value="sessionDate" width-class="flex-1" type="daterange" placeholder="Select date range" @update:date-value="passDate"/>
+    </div>
+    <div class="flex gap-2 items-center">
+        <WordsUI word-class="Leave Balance :"/>
+        <InputUI width-class="flex-1" :input-value="sessionLeaveBalance" @update:input-value="val => {emit('update:sessionLeaveBalance',val)}"/>
     </div>
     <div class="flex flex-col">
         <WordsUI word-class="Caution:"/>

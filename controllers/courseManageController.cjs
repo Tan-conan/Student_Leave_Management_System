@@ -2,12 +2,13 @@ const pool = require('../config/database.cjs');
 
 exports.fetchCurrentCourses = async (req, res) => {
   try {
-    const { programID } = req.body;
+    const { programId:programID } = req.user;
 
     const [rows] = await pool.execute(
       `SELECT 
         c.course_id, c.course_code, c.course_name,
-        IFNULL(l.lecturer_name, 'None') AS lecturer_name
+        IFNULL(l.lecturer_name, 'None') AS lecturer_name,
+        IFNULL(l.lecturer_id, 'None') AS lecturer_id
       FROM Course c
       LEFT JOIN CourseAssignment ca ON c.course_id = ca.course_id AND ca.assign_status = TRUE
       LEFT JOIN Lecturer l ON ca.lecturer_id = l.lecturer_id
@@ -37,7 +38,7 @@ exports.fetchCurrentCourses = async (req, res) => {
 
 exports.fetchLecturers = async (req, res) => {
   try {
-    const { programID } = req.body;
+    const { programId:programID } = req.user;
 
     const [rows] = await pool.execute(
       `SELECT lecturer_id, lecturer_name
@@ -59,7 +60,8 @@ exports.fetchLecturers = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
   try {
-    const { programID, courseName, courseCode } = req.body;
+    const { courseName, courseCode } = req.body;
+    const { programId:programID } = req.user;
 
     console.log(programID, courseName, courseCode)
 
@@ -87,6 +89,7 @@ exports.createCourse = async (req, res) => {
       return res.json({ message: `Course with the code ${courseCode} has been created before!`, successfully: false});
     }
 
+    // create course
     await pool.execute(
       `INSERT into Course (program_id, course_code, course_name)
        VALUES (?, ?, ?)`,
@@ -103,7 +106,12 @@ exports.createCourse = async (req, res) => {
 
 exports.assignLecturer = async (req, res) => {
   try {
-    const { courseName, lecturer_id, session_id } = req.body;
+    const { courseName, lecturer_id } = req.body;
+    const { sessionId:session_id, role } = req.user;
+
+    if (role !== 'hop') {
+      return res.json({message:'you do not have permission to do this!'})
+    }
 
     console.log(courseName, lecturer_id, session_id);
 
@@ -123,18 +131,23 @@ exports.assignLecturer = async (req, res) => {
     // detect current course got assigned a lecturer or not
     const [activeAssign] = await pool.execute(
       `SELECT assign_id FROM CourseAssignment 
-       WHERE course_id = ? AND session_id = ? AND assign_status = TRUE`,
-      [courseId[0].course_id, session_id]
+       WHERE course_id = ? AND assign_status = TRUE`,
+      [courseId[0].course_id]
     );
 
-    // if got assigned course unassign it
-    if (activeAssign.length != 0) {
-      await pool.execute(
-        `UPDATE CourseAssignment
-         SET assign_status = FALSE
-         WHERE assign_id = ?`,
-        [activeAssign[0].assign_id]
-      );
+    // if got assigned course unassign all records of it
+    console.log(activeAssign.length, activeAssign)
+    if (activeAssign.length > 0) {
+      const assignIds = activeAssign.map(a => a.assign_id);
+
+      for (const id of assignIds) {
+        await pool.execute(
+          `UPDATE CourseAssignment
+           SET assign_status = FALSE
+           WHERE assign_id = ?`,
+          [id]
+        );
+      }
     }
 
     // assign lecturer
@@ -166,6 +179,62 @@ exports.deleteCourse = async (req, res) => {
       );
 
     res.json({ message: `course "${courseName}" deleted successfully!` });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.saveCourse = async (req, res) => {
+  try {
+    const { courseName, newCourseName, newCourseCode, lecturerId } = req.body;
+    const { sessionId } = req.user;
+
+    console.log( courseName, newCourseName, newCourseCode, lecturerId, sessionId );
+
+    // find course id
+    const [courseId] = await pool.execute(
+        `SELECT course_id
+        FROM Course
+        WHERE course_name = ?`,
+        [courseName]
+    )
+
+    if (courseId.length === 0) {
+      return res.json({message: 'course unfound in database!'})
+    }
+
+    // if in a session or going to have a session
+    if (sessionId !== 'none') {
+      // find assign state true for this course in this session, set all to false
+      await pool.execute(
+        `UPDATE CourseAssignment
+         SET assign_status = FALSE
+         WHERE course_id = ? AND session_id = ? AND assign_status = TRUE`,
+        [courseId[0].course_id , sessionId]
+      );
+    }
+
+    // change the course name and code with new one
+    await pool.execute(
+      `UPDATE Course
+      SET course_name = ? , course_code = ?
+      WHERE course_id = ?`,
+      [newCourseName, newCourseCode, courseId[0].course_id]
+    );
+
+    // if lecturerId not none means wants to assign for new lecturer, else directly return
+    if (lecturerId !== 'none' && sessionId !== 'none') {
+      // assign lecturer
+      await pool.execute(
+        `INSERT into CourseAssignment (course_id, lecturer_id, session_id, assign_status)
+        VALUES (?, ?, ?, TRUE)`,
+        [courseId[0].course_id , lecturerId, sessionId]
+      )
+    }
+
+    return res.json({message: 'edit course successfully!', successfully: true})
 
   } catch (err) {
     console.error(err);

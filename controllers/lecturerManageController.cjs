@@ -1,9 +1,8 @@
 const pool = require('../config/database.cjs');
-const jwt = require('jsonwebtoken');
 
 exports.fetchLecturersList = async (req, res) => {
   try {
-    const { programID } = req.body;
+    const { programId:programID } = req.user;
 
     const [rows] = await pool.execute(
       `SELECT lecturer_id, lecturer_name, lecturer_status, date_join, lecturer_email, contact_no

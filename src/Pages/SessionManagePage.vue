@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '../api/axios.js'
 import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import StartNewSessionUI from '../components/Common/StartNewSessionUI.vue';
@@ -24,6 +24,7 @@ const userMenuModalVisible = ref(false)
 // HOP entered new session name and date
 const sessionDate = ref(null)
 const sessionName = ref(null)
+const sessionLeaveBalance = ref('')
 
 // HOP entered new holiday name and date
 const newHolidayDate = ref(null)
@@ -42,9 +43,34 @@ const userSessionName = ref('none')
 const userSessionStartDate = ref('none')
 const userSessionEndDate = ref('none')
 
+// user token verifier
+async function verifyToken() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token detected, back to login page.')
+    router.push('/')
+    return false
+  }
+
+  try {
+    const res = await api.get('/mainFunction/verify')
+    console.log('Token valid, user info:', res.data.user)
+    return true
+  } catch (err) {
+    console.error('Token invalid or expired:', err)
+    alert('Session expired, please log in again.')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/')
+    return false
+  }
+}
+
 // check got userinfo or not, no back to login page
 // fetch current session and holidays
-onMounted(() => {
+onMounted(async () => {
+  const valid = await verifyToken()
+  if (!valid) return
 
   if(!userInfo) {
       alert('user info unfound, back to login page.')
@@ -71,20 +97,28 @@ onMounted(() => {
 
 // check session is 
 async function sessionChecker() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token found, please login again.')
+    router.push('/')
+    return
+  }
+
   try {
-    const res = await axios.post('http://localhost:3000/api/mainFunction/sessionChecker', {
-      programId: userProgramId.value,
-      sessionId: userSessionID.value
-    })
+    const res = await api.post('/mainFunction/sessionChecker')
 
-    console.log('session id received will be ', res.data.session_id )
-
-    console.log('session_status received will be ', res.data.session_status )
+    // if new token given, replace with old one
+    if (res.data.updated && res.data.token) {
+      localStorage.setItem('token', res.data.token);
+    }
 
     // still did not detect any activated/unactivated session
     if (res.data.session_id === 'none') {
+      userSessionID.value = 'none'
       userSessionStatus.value = 'none'
-      userSessionStatus.value = 'none'
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
 
     } else if (res.data.session_status === 'ended') { // found current session is ended
       alert('no current ongoing session, back to login page')
@@ -93,11 +127,14 @@ async function sessionChecker() {
     } else { // update current session status
       userSessionID.value = res.data.session_id
       userSessionStatus.value = res.data.session_status
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
     }
 
   } catch (err) {
-    console.error(err);
-    alert('Session error: ' + (err.response?.data?.message || err.message));
+    alert('Session check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
   }
 }
 
@@ -160,14 +197,13 @@ async function saveHoliday(holidayId, holidayName, holidayDate) {
   HolidayDetailModal.value.visible = false
 
   try {
-
-    const res = await axios.post('http://localhost:3000/api/sessionManage/editHoliday', {
-      programID: userProgramId.value,
-      holidayId: holidayId,
-      holidayName: holidayName,
+    
+    const res = await api.post('/sessionManage/editHoliday',{
+      holidayId,
+      holidayName,
       holidayStartDate: startDate,
       holidayEndDate: endDate,
-    })
+    });
 
     await currentHolidays()
 
@@ -200,7 +236,7 @@ async function deleteHoliday(holidayId) {
   await sessionChecker();
   try {
 
-    const res = await axios.post('http://localhost:3000/api/sessionManage/deleteHoliday', {
+    const res = await api.post('/sessionManage/deleteHoliday', {
       holidayId: holidayId,
     })
 
@@ -237,11 +273,48 @@ function confirmModal() {
 
 function openCreateSessionModal() {
 
-  if (!sessionDate.value || sessionDate.value.length < 2 || !sessionName.value) {
+  if (!sessionDate.value || sessionDate.value.length < 2 || !sessionName.value || !sessionLeaveBalance.value) {
   confirmationModal.value = {
       visible: true,
       title: 'Fill in the form',
       message: 'Please fill in all the session forms!',
+      action: null,
+      modalType: 'warning',
+    }
+  return;
+  }
+
+  // make sure leave balance is a valid pure integer
+  let isNum = true
+  const isPureInteger = /^[0-9]+$/.test(sessionLeaveBalance.value)
+
+  if (!isPureInteger) {
+    isNum = false
+  } else {
+    const balanceNum = Number(sessionLeaveBalance.value)
+    if (Number.isNaN(balanceNum)) {
+    isNum = false
+  } else if (balanceNum <= 0 ) {
+    isNum = false
+  }
+  }
+
+  if (isNum === false) {
+  confirmationModal.value = {
+      visible: true,
+      title: 'invalid leave balance',
+      message: 'invalid Leave Balance!',
+      action: null,
+      modalType: 'warning',
+    }
+  return;
+  }
+
+  if (parseInt(sessionLeaveBalance.value) > 30) {
+  confirmationModal.value = {
+      visible: true,
+      title: 'leave balance Value',
+      message: 'leave balance given to students more than 30 days!',
       action: null,
       modalType: 'warning',
     }
@@ -291,11 +364,11 @@ async function createSession() {
   console.log('typeof startDate:', typeof endDate)
 
   try{
-    const res = await axios.post('http://localhost:3000/api/sessionManage/createSession', {
+    const res = await api.post('/sessionManage/createSession', {
       sessionName: sessionName.value,
       sessionStartDate: startDate.toLocaleDateString('en-CA'),
       sessionEndDate: endDate.toLocaleDateString('en-CA'),
-      programID: userProgramId.value,
+      sessionLeaveBalance: sessionLeaveBalance.value
     })
 
     confirmationModal.value = {
@@ -321,9 +394,7 @@ async function createSession() {
 // get current unactivated/ activated session
 async function currentSession() {
   try {
-    const res = await axios.post('http://localhost:3000/api/sessionManage/fetchCurrentSession', {
-      programId: userProgramId.value
-    })
+    const res = await api.post('/sessionManage/fetchCurrentSession')
 
     console.log(res.data.session);
 
@@ -331,12 +402,6 @@ async function currentSession() {
       userSessionName.value = res.data.session[0].session_name
       userSessionStartDate.value = res.data.session[0].starting_date
       userSessionEndDate.value = res.data.session[0].ending_date
-      userSessionID.value = res.data.session[0].session_id
-      userSessionStatus.value = res.data.session[0].session_status
-
-      userInfo.sessionStatus = res.data.session[0].session_status;
-      userInfo.sessionId = res.data.session[0].session_id
-      localStorage.setItem('user', JSON.stringify(userInfo));
 
       userSessionStartDate.value = new Date(userSessionStartDate.value).toLocaleDateString('en-CA')
       userSessionEndDate.value = new Date(userSessionEndDate.value).toLocaleDateString('en-CA')
@@ -350,9 +415,7 @@ async function currentSession() {
 
 async function currentHolidays() {
   try {
-    const res = await axios.post('http://localhost:3000/api/sessionManage/fetchHolidays', {
-      sessionId: userSessionID.value,
-    })
+    const res = await api.post('/sessionManage/fetchHolidays')
 
     console.log('holiday is ', res.data.holidays)
     console.log('sessionState is ', res.data.sessionState)
@@ -381,8 +444,7 @@ async function addHoliday() {
     const startDate = new Date(startDateNum)
     const endDate   = new Date(endDateNum)
 
-    const res = await axios.post('http://localhost:3000/api/sessionManage/addHoliday', {
-      programID: userProgramId.value,
+    const res = await api.post('/sessionManage/addHoliday', {
       holidayName: newHolidayName.value,
       holidayStartDate: startDate.toLocaleDateString('en-CA'),
       holidayEndDate: endDate.toLocaleDateString('en-CA'),
@@ -425,7 +487,8 @@ async function addHoliday() {
         <StartNewSessionUI v-model:sessionDate="sessionDate" @startSession="openCreateSessionModal"
         v-model:sessionName="sessionName" :currentSessionName = "userSessionName" 
         :currentSessionStartDate = userSessionStartDate :currentSessionEndDate="userSessionEndDate"
-        :currentSessionState="userSessionStatus"/>
+        :currentSessionState="userSessionStatus" v-model:sessionLeaveBalance="sessionLeaveBalance"/>
+
         <HolidayManageUI v-model:newHolidayDate="newHolidayDate" @row-clicked="row => openHolidayDetailModal(row)"
          @addHoliday="openAddHolidayModal" :holidayList="holidayList" v-model:newHolidayName="newHolidayName" 
          :userSessionStatus="userSessionStatus"/>

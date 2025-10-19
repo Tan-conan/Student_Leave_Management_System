@@ -1,7 +1,7 @@
 <script setup>
 
 const props = defineProps({
-    wordClass:{type:String, default:''},
+    wordClass:{type:[String, Number], default:''},
     textColorClass:{type:String, default:'text-greenSoft'},
     widthClass:{type:String, default:'w-auto'},
 });

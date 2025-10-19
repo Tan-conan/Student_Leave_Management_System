@@ -1,62 +1,360 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import api from '../api/axios.js'
 import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import LeaveFileAttachment from '../components/Common/LeaveFileAttachment.vue';
-import LeaveLecturerSelection from '../components/Common/LeaveLecturerSelection.vue';
+import sendLecturerList from '../components/Common/sendLecturerList.vue';
 import ButtonUI from '../components/UI/ButtonUI.vue';
 import ChatBotUI from '../components/Common/ChatBotUI.vue';
 import LeaveApprovalInputs from '../components/Common/LeaveApprovalInputs.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
 
 const route = useRoute()
+const router = useRouter()
+
 const topPageTitle = ref('Student Leave Form');
-const userName = ref(route.query.userName || '<Lecturer / HOP Name>');
-const userType = ref(route.query.userType || '');
 
 const userMenuModalVisible = ref(false)
+
+const storedUserInfo = localStorage.getItem('user') // fetch local storage user data
+const userInfo = storedUserInfo ? JSON.parse(storedUserInfo) : null // if info exist parse it else return null
+
+// leave id
+const leave_id = ref('')
+leave_id.value = route.query.leaveId
+console.log('leave id is', leave_id.value)
+
+
+// lecturer approvement info
+const lecturerApprovement = ref([])
+
+// frontend stored user information
+const userName = ref('');
+const userType = ref('');
+const userProgramId = ref('');
+const userSessionID = ref('');
+const userSessionStatus = ref('')
+const userCurrentLeave = ref('')
+const userPredictedLeave = ref('')
+const requestValidLeaveDay = ref('none')
+
+// leave info
+const studentName = ref('')
+const requestName = ref('')
+const leaveStatus = ref('')
+const leaveType = ref('')
+const submissionDate = ref('')
+const leaveReason = ref('');
+
+const startDate = ref('')
+const endDate = ref('')
+
+const leaveFiles = ref([])
+
 const approveModalVisible = ref(false)
 const rejectModalVisible = ref(false)
 
-const requestName = ref('')
-const selectedDateRange = ref(null)
+const viewerDicision = ref('')
 
-const leaveReason = ref('');
+async function findSessionRange() {
+  try {
+    const res = await api.post('/leaveApplyManage/findSessionRange')
 
-const leaveFiles = ref([
-  {id: 1 , file_name: 'medical_certificate.pdf' , checkbox: false},
-  {id: 2 , file_name: 'parent_letter.jpg' , checkbox: false},
-  {id: 3 , file_name: 'event_approval_form.pdf' , checkbox: false},
-  {id: 4 , file_name: 'accident_report.png' , checkbox: false}
-])
+    console.log(res.data.sessionStartDate, res.data.sessionEndDate, res.data.sessionName)
 
-const lecturerCourses = ref([
-  { id: 1, lecturer_name: 'Dr. Lim Wei Ming', course_name: 'Software Engineering', checkbox: false },
-  { id: 2, lecturer_name: 'Prof. Tan Ai Ling', course_name: 'Database Systems', checkbox: false },
-  { id: 3, lecturer_name: 'Mr. Ahmad Zulkifli', course_name: 'Operating Systems', checkbox: false },
-  { id: 4, lecturer_name: 'Dr. Chong Mei Ling', course_name: 'Computer Networks', checkbox: false },
-  { id: 5, lecturer_name: 'Ms. Nurul Aisyah', course_name: 'Human-Computer Interaction', checkbox: false }
-])
+    if (!res.data.sessionStartDate || !res.data.sessionEndDate || !res.data.sessionName) {
+      topPageTitle.value = 'Leave Form || Session:None'
+    } else {
+      const startDate = new Date(res.data.sessionStartDate).toLocaleDateString('en-ca')
+      const endDate = new Date(res.data.sessionEndDate).toLocaleDateString('en-ca')
+      topPageTitle.value = `Leave Form || Session:${res.data.sessionName} (${startDate} - ${endDate})`
+    }
 
-watch(selectedDateRange, (newVal) => {
-  let startDate = new Date(selectedDateRange.value[0])
-  let endDate = new Date(selectedDateRange.value[1])
+  } catch (err) {
+    alert('date check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
+  }
+}
+
+async function fetchViewerDicision() {
+  try {
+    const res = await api.post('/leaveApproveManage/fetchViewerDicision', {
+      leave_id: leave_id.value
+    })
+
+    viewerDicision.value = res.data.dicision
+    console.log('decision value', viewerDicision.value)
+
+  } catch (err) {
+    alert('date check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
+  }
+}
+
+// user token verifier
+async function verifyToken() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token detected, back to login page.')
+    router.push('/')
+    return false
+  }
+
+  try {
+    const res = await api.get('/mainFunction/verify')
+    console.log('Token valid, user info:', res.data.user)
+    return true
+  } catch (err) {
+    console.error('Token invalid or expired:', err)
+    alert('Session expired, please log in again.')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/')
+    return false
+  }
+}
+
+async function checkStudentLeaveBalanceLA() {
+  console.log('starting to check leave balance....')
+
+  try{
+    const res = await api.post('/leaveApproveManage/checkStudentLeaveBalanceLA', {
+      leave_id: leave_id.value
+    })
+    
+    if (!res.data.successfully) {
+      console.log(res.data.message)
+      return;
+    } else {
+      console.log('fetching leave balance complete')
+      userCurrentLeave.value = res.data.currentLeave
+      userPredictedLeave.value = res.data.predictedLeave
+    }
+
+  } catch (err) {
+    console.error(err)
+    alert('Session error: ' + (err.response?.data?.message || err.message))
+  }
   
-  console.log(startDate.toLocaleDateString())
-  console.log(endDate.toLocaleDateString())   
+}
+
+async function fetchLeaveRequestInfo() {
+  console.log('starting to check leave balance....')
+
+  try{
+    const res = await api.post('/leaveApproveManage/fetchLeaveRequestInfo', {
+      leave_id: leave_id.value
+    })
+
+    if (res.data.successfully) {
+      requestName.value = res.data.leaveInfo[0].leave_name
+      leaveType.value = res.data.leaveInfo[0].leave_type
+      startDate.value = new Date(res.data.leaveInfo[0].leave_date).toLocaleDateString('en-ca')
+      endDate.value = new Date(res.data.leaveInfo[0].end_date).toLocaleDateString('en-ca')
+      leaveReason.value = res.data.leaveInfo[0].leave_reason
+      leaveStatus.value = res.data.leaveInfo[0].leave_status
+      submissionDate.value = new Date(res.data.leaveInfo[0].submission_date).toLocaleDateString('en-ca')
+      requestValidLeaveDay.value = res.data.leaveInfo[0].leave_days
+      studentName.value = res.data.student_name
+    }
+
+
+
+  } catch (err) {
+    console.error(err)
+    alert('Session error: ' + (err.response?.data?.message || err.message))
+  }
+  
+}
+
+async function fetchApprovementLecturers() {
+  console.log('starting to check leave balance....')
+
+  try{
+    const res = await api.post('/leaveApproveManage/fetchApprovementLecturers', {
+      leave_id: leave_id.value
+    })
+
+    if (res.data.approveInfo.length !== 0) {
+      lecturerApprovement.value = res.data.approveInfo.map((d) => ({
+        lecturer_name: d.lecturer_name,
+        approve_status: d.approve_status
+      })
+      )
+    }
+
+  } catch (err) {
+    console.error(err)
+    alert('Session error: ' + (err.response?.data?.message || err.message))
+  }
+  
+}
+
+// check got userinfo or not, no back to login page
+// fetch current session and holidays
+onMounted(async () => {
+  const valid = await verifyToken()
+  if (!valid) return
+
+  if(!userInfo) {
+      alert('user info unfound, back to login page.')
+      router.push('/')
+  } else {
+      userName.value = userInfo.name || '<user Name>';
+      userType.value = userInfo.role || '';
+      userProgramId.value = userInfo.program || '';
+      userSessionID.value = userInfo.sessionId || 'none';
+      userSessionStatus.value = userInfo.sessionStatus || 'none';
+      console.log('user type is ' + userType.value);
+  }
+
+  sessionChecker();
+  checkStudentLeaveBalanceLA();
+  findSessionRange();
+  fetchLeaveRequestInfo();
+  fetchApprovementLecturers();
+  fetchViewerDicision();
 
 })
+
+// check session is 
+async function sessionChecker() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('No token found, please login again.')
+    router.push('/')
+    return
+  }
+
+  try {
+    const res = await api.post('/mainFunction/sessionChecker')
+
+    // if new token given, replace with old one
+    if (res.data.updated && res.data.token) {
+      localStorage.setItem('token', res.data.token);
+    }
+
+    // still did not detect any activated/unactivated session
+    if (res.data.session_id === 'none') {
+      userSessionID.value = 'none'
+      userSessionStatus.value = 'none'
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
+
+    } else if (res.data.session_status === 'ended') { // found current session is ended
+      alert('no current ongoing session, back to login page')
+      router.push('/')
+
+    } else { // update current session status
+      userSessionID.value = res.data.session_id
+      userSessionStatus.value = res.data.session_status
+      userInfo.sessionStatus = userSessionStatus.value
+      userInfo.sessionId = userSessionID.value
+      localStorage.setItem('user', JSON.stringify(userInfo));
+    }
+
+  } catch (err) {
+    alert('Session check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
+  }
+}
+
+const confirmationModal = ref({
+  visible: false,
+  title: '',
+  message: '',
+  action: null, //functions
+  modalType: 'confirmation',
+})
+
+function confirmModal() {
+  if (confirmationModal.value.action) {
+    confirmationModal.value.action()
+  }
+  confirmationModal.value.visible = false;
+}
+
+function approveLeaveModal() {
+  // confirmation
+  confirmationModal.value = {
+    visible: true,
+    title: 'Approve Leave',
+    message: 'Are you sure you want to approve this leave?',
+    action: approveRequest,
+    modalType: 'confirmation'
+  }
+}
+
+async function approveRequest() {
+  try {
+    const res = await api.post('/leaveApproveManage/approveRequest', {
+      leave_id: leave_id.value,
+    })
+
+    confirmationModal.value = {
+      visible: true,
+      title: res.data.successfully? 'Approve success' : 'Approve failed',
+      message: res.data.message,
+      action: '',
+      modalType: 'warning'
+   }
+
+   checkStudentLeaveBalanceLA();
+   fetchLeaveRequestInfo();
+   fetchApprovementLecturers();
+   fetchViewerDicision();
+
+  } catch (err) {
+    alert('date check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
+  }
+}
+
+function rejectLeaveModal() {
+  // confirmation
+  confirmationModal.value = {
+    visible: true,
+    title: 'Approve Leave',
+    message: 'Are you sure you want to approve this leave?',
+    action: rejectRequest,
+    modalType: 'confirmation'
+  }
+}
+
+async function rejectRequest() {
+  try {
+    const res = await api.post('/leaveApproveManage/rejectRequest', {
+      leave_id: leave_id.value,
+    })
+
+    confirmationModal.value = {
+      visible: true,
+      title: res.data.successfully? 'Reject success' : 'Reject failed',
+      message: res.data.message,
+      action: '',
+      modalType: 'warning'
+   }
+
+   checkStudentLeaveBalanceLA();
+   fetchLeaveRequestInfo();
+   fetchApprovementLecturers();
+   fetchViewerDicision();
+
+  } catch (err) {
+    alert('date check failed: ' + (err.response?.data?.message || err.message));
+    router.push('/');
+  }
+}
 
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
-    <ComfirmationModal modal-title="Approve confirmation" modal-message="Are you sure you want to approve this record?"
-     v-model:confirmationModalVisible="approveModalVisible"/>
-    
-    <ComfirmationModal modal-title="Reject confirmation" modal-message="Are you sure you want to reject this record?"
-     v-model:confirmationModalVisible="rejectModalVisible"/>
+    <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
+    :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
     <UserMenuModal v-model:userMenuModalVisible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
      @update:user-menu-modal-visible="userMenuModalVisible = false"/>
@@ -68,16 +366,22 @@ watch(selectedDateRange, (newVal) => {
 
       <!--left-->
       <div class="flex flex-col w-[60%] gap-2">
-        <LeaveApprovalInputs v-model:selected-date-range="selectedDateRange" v-model:user-name="userName" v-model:user-type="userType"
-        v-model:request-name="requestName" v-model:leave-reason="leaveReason"/>
+        <LeaveApprovalInputs :user-name="userName" :user-type="userType"
+        :request-name="requestName" :leave-reason="leaveReason" :userPredictedLeave="userPredictedLeave"
+        :submission-date="submissionDate" :start-date="startDate" :end-date="endDate" :request-valid-leave-day="requestValidLeaveDay"
+        :leave-type="leaveType" :user-current-leave="userCurrentLeave" :studentName="studentName" :leaveStatus="leaveStatus"/>
 
         <LeaveFileAttachment v-model:user-type="userType" v-model:leaveFiles="leaveFiles"/>
 
-        <LeaveLecturerSelection v-if="userType === 'HOP'" v-model:user-type="userType" v-model:lecturerCourses="lecturerCourses"/>
+        <sendLecturerList v-if="userType !== 'lecturer'" v-model:user-type="userType" v-model:lecturerCourses="lecturerApprovement"/>
 
         <div class="flex gap-2 justify-end w-[100%]">
-          <ButtonUI word-class="Approve leave" width-class="w-auto" @update:word-class="approveModalVisible = true"/>
-          <ButtonUI word-class="Reject leave" width-class="w-auto" @update:word-class="rejectModalVisible = true"/>
+          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' 
+          && leaveStatus !== 'final rejected' && viewerDicision === false)" 
+          word-class="Approve leave" width-class="w-auto" @update:word-class="approveLeaveModal"/>
+          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' 
+          && leaveStatus !== 'final rejected' && viewerDicision === false)" 
+          word-class="Reject leave" width-class="w-auto" @update:word-class="rejectLeaveModal"/>
         </div>
 
       </div>

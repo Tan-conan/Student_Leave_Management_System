@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
-const JWT_EXPIRES = '2h';
+const JWT_EXPIRES = '5h';
 
 function pickUserRow(role, row, session_id, session_status) {
   if (!row) return null;

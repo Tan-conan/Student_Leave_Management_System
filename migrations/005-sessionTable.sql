@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS Session (
   starting_date    DATE NoT NULL,
   ending_date      DATE NOT NULL,
   session_status   VARCHAR(20) DEFAULT 'unactivated',
+  leave_balance    INT NOT NULL,
   created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_session_program

@@ -1,7 +1,5 @@
 <script setup>
 import ButtonUI from '../UI/ButtonUI.vue';
-import InputUI from '../UI/InputUI.vue';
-import DatePicker from '../UI/DatePicker.vue';
 import { useRouter } from 'vue-router'
 import { ref, defineProps, defineEmits } from 'vue'
 import WordsUI from '../UI/WordsUI.vue';
@@ -10,13 +8,19 @@ import TextAreaUI from '../UI/TextAreaUI.vue';
 const router = useRouter()
 
 const props = defineProps({
- selectedDateRange:{type:Array, default: [null, null]},
+ studentName:{type:String, default: ''},
  requestName:{type:String, default: ''},
+ leaveType:{type:String, default: ''},
+ leaveStatus:{type:String, default: ''},
  startDate:{type:String, default: 'not available'},
  endDate:{type:String, default: 'not available'},
  userName:{type:String, default: ''},
  userType:{type:String, default: ''},
- leaveReason:{type:String, default: ''}
+ leaveReason:{type:String, default: ''},
+ submissionDate:{type:String, default: ''},
+ userCurrentLeave:{type:[String, Number], default: ''},
+ userPredictedLeave:{type:[String, Number], default: ''},
+ requestValidLeaveDay:{type:[String, Number], default: ''}
 });
 
 const emit = defineEmits([
@@ -26,13 +30,7 @@ const emit = defineEmits([
 ]);
 
 function backToLeaveRequests() {
-    router.push({
-            path:'/LeaveRequestsPage',
-            query:{
-                userName:props.userName,
-                userType:props.userType
-            }
-    })
+    router.back()
 }
 
 function updateLeaveReason(val) {
@@ -43,26 +41,55 @@ function updateLeaveReason(val) {
 </script>
 
 <template>
-<div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-10">
-    <ButtonUI word-class="Back to Leave requests" width-class="w-auto" @click="backToLeaveRequests"/>
-    <WordsUI word-class="Leave Balance:<Balance>"/>
+<div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-5">
+    <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRequests"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Request Name"/>
-    <WordsUI word-class="<Request Name>"/>
+    <WordsUI word-class="Student Name:"/>
+    <WordsUI :word-class="studentName"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Request Name:"/>
+    <WordsUI :word-class="requestName"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Leave Type:"/>
+    <WordsUI :word-class="leaveType"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Leave Status:"/>
+    <WordsUI :word-class="leaveStatus"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="From"/>
-    <WordsUI word-class="<start date>"/>
+    <WordsUI :word-class="startDate"/>
     <WordsUI word-class="to"/>
-    <WordsUI word-class="<end date>"/>
+    <WordsUI :word-class="endDate"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Submission Date:"/>
+    <WordsUI :word-class="submissionDate"/>
+</div>
+
+<div class="flex">
+    <WordsUI word-class="Student Current Leave Balance:"/>
+    <WordsUI :word-class="userCurrentLeave" width-class="flex-1"/>
+</div>
+
+<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Student Predicted Leave Balance:"/>
+    <WordsUI :word-class="userPredictedLeave"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="Valid leave Day:"/>
-    <WordsUI word-class="(Days of leave after deducted holidays and weekends)"/>
+    <WordsUI :word-class="requestValidLeaveDay"/>
 </div>
 
 <WordsUI word-class="Reason to leave:"/>

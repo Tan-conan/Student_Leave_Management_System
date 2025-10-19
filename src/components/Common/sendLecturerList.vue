@@ -12,19 +12,11 @@ const props = defineProps({
 const currentSortKey = ref(''); // current sorting key
 const currentSortOrder = ref('asc'); // asc for ascending, desc for descending
 
-const finalTableHeads = ref([
+const tableHeads = ref([
     // key better dont have spacing, use _
     {key:'lecturer_name' , label:'Lecturer Name'},
-    {key:'course_name' , label:'Course Name'},
+    {key:'approve_status' , label:'Approve Status'},
 ])
-
-// if student add checkbox column
-const tableHeads = computed(() => {
-  if (props.userType === 'student') {
-    return [...finalTableHeads.value, { key: 'checkbox', label: 'Send to' }];
-  }
-  return finalTableHeads.value;
-});
 
 // managing user filter, search and sort functions at once
 const manageLecturers = computed(function(){
@@ -66,16 +58,12 @@ function rowClickHandle(val) {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
-        <WordsUI :word-class="userType === 'student' ? 'Send to...' : 'received lecturers' "/>
+        <WordsUI word-class="sended Lecturers"/>
 
     </div>
 
     <RecordListUI :table-heads="tableHeads" :leave-records="manageLecturers" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="h-50"  @row-clicked="rowClickHandle">
-
-    <template #checkbox="{ row, value }">
-        <input type="checkbox" class="scale-150" v-model="row.checkbox" />
-    </template>
 
     </RecordListUI>
 

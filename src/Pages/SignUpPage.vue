@@ -89,6 +89,19 @@ async function registerUser() {
     return
   }
 
+  const regex = /^[0-9]{8,15}$/;
+
+  if (!regex.test(userContactNum.value)) {
+    confirmationModal.value = {
+      visible: true,
+      title: 'error phone format',
+      message: 'invalid phone number format!',
+      action: null,
+      modalType: 'warning',
+    }
+  return;
+  }
+
   const date = new Date(joinDate.value)
   const formattedDate = date.toLocaleDateString('en-CA') // to local date
 

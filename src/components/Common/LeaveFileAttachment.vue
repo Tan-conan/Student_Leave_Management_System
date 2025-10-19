@@ -1,104 +1,113 @@
 <script setup>
 import ButtonUI from '../UI/ButtonUI.vue';
-import { ref, computed, watch, defineProps } from 'vue';
+import { ref, computed, defineProps, defineEmits } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
 const props = defineProps({
-    userType:{type:String, default: ''},
-    leaveFiles:{type:Array, default: []},
-    confirmFileModalVisible:{type:Boolean, default:false},
+  userType: { type: String, default: '' },
+  leaveFiles: { type: Array, default: [] },
 });
 
-const emit = defineEmits(['update:confirmFileModalVisible'])
+const emit = defineEmits(['update:leaveFiles']);
 
-// for sorting
-const currentSortKey = ref(''); // current sorting key
-const currentSortOrder = ref('asc'); // asc for ascending, desc for descending
+// local files
+const localFiles = ref([]);
 
-const finalTableHeads = ref([
-    // key better dont have spacing, use _
-    {key:'id' , label:'ID'},
-    {key:'file_name' , label:'File Name'},
-])
+// sorting
+const currentSortKey = ref('');
+const currentSortOrder = ref('asc');
 
-// if student add checkbox column
-const tableHeads = computed(() => {
-  if (props.userType === 'Student') {
-    return [...finalTableHeads.value, { key: 'checkbox', label: 'Delete' }];
+const tableHeads = ref([
+  { key: 'id', label: 'ID' },
+  { key: 'file_name', label: 'File Name' },
+  { key: 'delete', label: 'Delete' },
+]);
+
+// computed final list (sorted)
+const manageFiles = computed(() => {
+  let files = [...localFiles.value];
+
+  if (currentSortKey.value) {
+    files.sort((a, b) => {
+      let A = a[currentSortKey.value];
+      let B = b[currentSortKey.value];
+      if (typeof A === 'string') A = A.toLowerCase();
+      if (typeof B === 'string') B = B.toLowerCase();
+      if (A > B) return currentSortOrder.value === 'asc' ? 1 : -1;
+      if (A < B) return currentSortOrder.value === 'asc' ? -1 : 1;
+      return 0;
+    });
   }
-  return finalTableHeads.value;
+
+  return files;
 });
 
-// managing user filter, search and sort functions at once
-const manageFiles = computed(function(){
-    let filteredRecords = props.leaveFiles
+// click row → open file
+function rowClickHandle(row) {
+  if (row.file_url) window.open(row.file_url, '_blank');
+}
 
-    if (currentSortKey.value) { // if user got sort then calculate this  
-        filteredRecords = [...filteredRecords].sort((a,b) => {
-            let A = a[currentSortKey.value] // get 'a' row specific value
-            let B = b[currentSortKey.value] // get 'b' row specific value
+// delete file
+function deleteFile(id) {
+  localFiles.value = localFiles.value.filter(file => file.id !== id);
+  emit('update:leaveFiles', localFiles.value);
+}
 
-            if (typeof A === 'string') {
-                A=A.toLowerCase();
-            }
-            
-            if (typeof B === 'string') {
-                B=B.toLowerCase();
-            }
+// add file
+function addnewFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
 
-            if ( A > B ) {
-                return currentSortOrder.value === 'asc' ? 1 : -1
-            }
-            if ( A < B) {
-                return currentSortOrder.value === 'asc' ? -1 : 1
-            }
-            return 0
-        })
+  input.onchange = (event) => {
+    const files = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const url = URL.createObjectURL(file);
+      localFiles.value.push({
+        id: localFiles.value.length + 1,
+        file_name: file.name,
+        file_url: url,
+        file_object: file,
+      });
     }
 
-    return filteredRecords
-})
+    emit('update:leaveFiles', localFiles.value);
+  };
 
-function rowClickHandle(val) {
-    
+  input.click();
 }
-
-function addnewFile(val) {
-    console.log('a button is clicked which is ' + val)
-}
-
-function confirmDeleteFiles() {
-  emit('update:confirmFileModalVisible', true);
-}
-
 </script>
 
 <template>
-<div class="flex flex-col items-center justify-center w-[100%] gap-2 border-greenSoft">
+  <div class="flex flex-col items-center justify-center w-[100%] gap-2 border-greenSoft">
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
-
-        <WordsUI word-class="Attached Files"/>
-        <ButtonUI v-if="props.userType === 'Student'" word-class="Add new file" width-class="w-auto" @update:word-class="addnewFile"/>
-
+      <WordsUI word-class="Attached Files"/>
+      <ButtonUI
+        v-if="props.userType === 'student'"
+        word-class="Add new file"
+        width-class="w-auto"
+        @update:word-class="addnewFile"
+      />
     </div>
 
-    <RecordListUI :table-heads="tableHeads" :leave-records="manageFiles" v-model:current-sort-key="currentSortKey"
-    v-model:current-sort-order="currentSortOrder" height-class="h-50"  @row-clicked="rowClickHandle">
-
-    <template #checkbox="{ row, value }">
-        <input type="checkbox" class="scale-150" v-model="row.checkbox" />
-    </template>
-
+    <RecordListUI
+      :table-heads="tableHeads"
+      :leave-records="manageFiles"
+      v-model:current-sort-key="currentSortKey"
+      v-model:current-sort-order="currentSortOrder"
+      height-class="h-50"
+      @row-clicked="rowClickHandle"
+    >
+      <template #delete="{ row }">
+        <button 
+          class="bg-greenSoft text-white px-3 py-1 rounded"
+          @click="deleteFile(row.id)">
+          Delete
+        </button>
+      </template>
     </RecordListUI>
-
-    <div class="flex justify-end w-[100%]">
-        <ButtonUI v-if="props.userType === 'Student'" word-class="Delete Selected Files" width-class="w-auto" @update:word-class="confirmDeleteFiles"/>
-    </div>
-
-</div>
-
+  </div>
 </template>
-<style>
-</style>

@@ -5,74 +5,40 @@ import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
 import WordsUI from '../UI/WordsUI.vue';
 import DropdownUI from '../UI/DropdownUI.vue';
+import DatePicker from '../UI/DatePicker.vue';
 
 const router = useRouter()
 
 const props = defineProps({
- selectedDateRange:{type:Array, default: [null, null]},
- requestName:{type:String, default: ''},
- leaveReason:{type:String, default: ''},
- userType:{type:String, default: ''},
+ viewerType:{type:String, default: ''},
+
+ // target user information
+ targetName:{type:String, default: ''},
+ targetRole:{type:String, default: ''},
+ targetProgramName:{type:String, default: ''},
+ targetEmail:{type:String, default: ''},
+ targetNum:{type:String, default: ''},
+ targetDateJoined:{type:[Number, String], default: ''},
+ targetSessionName:{type:String, default: ''},
+ targetStatus:{type:String, default: ''},
+ leaveBalance:{type:String, default: ''},
 });
 
 const emit = defineEmits([
-    'update:selectedDateRange',
-    'update:requestName',
-    'update:leaveReason'
+    'update:targetName',
+    'update:targetEmail',
+    'update:targetNum',
+    'update:targetDateJoined',
+    'update:targetSessionName',
+    'update:targetStatus',
+    'update:leaveBalance',
 ]);
 
-const userName = ref('')
-const userProgram = ref('')
-const contactNo = ref('')
-const dateJoined= ref('')
-const assignedCourse= ref('')
-const userRole = ref('')
-const emailAddress = ref('')
-const session = ref('')
-const status = ref('')
-
-const stateArray = ref(['available','unavailable','retired','guaduated'])
+const stateArray = ref(['active','unactive'])
 
 function backToLogin() {
   router.push('/')
 }
-
-watch(userName, (newVal) => {
-  console.log('userName is now:', newVal)
-})
-
-watch(userProgram, (newVal) => {
-  console.log('userProgram is now:', newVal)
-})
-
-watch(contactNo, (newVal) => {
-  console.log('contactNo is now:', newVal)
-})
-
-watch(dateJoined, (newVal) => {
-  console.log('dateJoined is now:', newVal)
-})
-
-watch(assignedCourse, (newVal) => {
-  console.log('assignedCourse is now:', newVal)
-})
-
-watch(userRole, (newVal) => {
-  console.log('userRole is now:', newVal)
-})
-
-watch(emailAddress, (newVal) => {
-  console.log('emailAddress is now:', newVal)
-})
-
-watch(session, (newVal) => {
-  console.log('session is now:', newVal)
-})
-
-watch(status, (newVal) => {
-  console.log('status is now:', newVal)
-})
-
 
 </script>
 
@@ -85,56 +51,65 @@ watch(status, (newVal) => {
     <div class="flex flex-col items-center w-[50%] mx-auto px-0 gap-2">
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Username"/>
-        <InputUI v-model:input-value="userName" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetName" width-class="flex-1" @update:input-value="val => emit('update:targetName',val)"
+        :disabled="props.viewerType === 'hop' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Program"/>
-        <InputUI v-model:input-value="userProgram" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetProgramName" width-class="flex-1"
+        :disabled=true />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Contact No"/>
-        <InputUI v-model:input-value="contactNo" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetNum" width-class="flex-1" @update:input-value="val => emit('update:targetNum',val)"
+        :disabled="props.viewerType === 'hop' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Date Joined"/>
-        <InputUI v-model:input-value="dateJoined" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI v-if="viewerType !== 'hop'" :input-value="new Date(targetDateJoined).toLocaleDateString('en-CA')" width-class="flex-1" @update:input-value="val => emit('update:targetDateJoined',val)"
+        :disabled="true" />
+        <DatePicker v-else :date-value="targetDateJoined" width-class="flex-1" type="date" @update:date-value="val => emit('update:targetDateJoined',val)"/>
     </div>
 
-    <div class="flex gap-2 w-[100%]">
-        <WordsUI word-class="Assigned Course"/>
-        <InputUI v-model:input-value="assignedCourse" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+    <div v-if="targetRole === 'student'" class="flex gap-2 w-[100%]">
+        <WordsUI word-class="Leave balance"/>
+        <InputUI input-value="<leave balance>" width-class="flex-1" @update:input-value="val => emit('update:leaveBalance',val)"
+          :disabled="true" />
     </div>
+
     </div>
 
     <div class="flex flex-col items-center w-[50%] mx-auto px-0 gap-2">
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Role"/>
-        <InputUI v-model:input-value="userRole" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetRole" width-class="flex-1" :disabled="true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Email Address"/>
-        <InputUI v-model:input-value="emailAddress" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetEmail" width-class="flex-1" @update:input-value="val => emit('update:targetEmail',val)"
+        :disabled="props.viewerType === 'hop' ? false : true" />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Session"/>
-        <InputUI v-model:input-value="session" width-class="flex-1" :disabled="props.userType === 'HOP' ? false : true" />
+        <InputUI :input-value="targetSessionName" width-class="flex-1" :disabled=true />
     </div>
 
     <div class="flex gap-2 w-[100%]">
         <WordsUI word-class="Status"/>
-        <DropdownUI v-if="props.userType === 'HOP'" :options="stateArray" v-model:dropdown-value="status"/>
-        <InputUI v-else input-value="<status>" width-class="flex-1" :disabled=true />
+        <DropdownUI v-if="props.viewerType === 'hop' && props.targetRole !== 'hop' " :options="stateArray" :dropdown-value="targetStatus"
+        @update:dropdown-value="val => emit('update:targetStatus',val)"/>
+        <InputUI v-else :input-value="targetStatus" width-class="flex-1" :disabled=true />
     </div>
     </div>
 </div>
 
-<WordsUI word-class="You may contact HOP Admins if any information are incorrect or needed to change."/>
+<WordsUI v-if="props.viewerType !== 'hop'" word-class="You may contact HOP Admins if any information are incorrect or needed to change."/>
 
 
 </template>

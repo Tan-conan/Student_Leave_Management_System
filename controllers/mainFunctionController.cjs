@@ -1,4 +1,7 @@
 const pool = require('../config/database.cjs');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || '';
+
 
 // check and update session state in time
 async function sessionManagement() {
@@ -33,69 +36,93 @@ setInterval(() => {
 
 exports.sessionChecker = async (req, res) => {
   try {
-    const { programId, sessionId } = req.body;
-    console.log('user programId will be ', programId )
-    console.log('user old session id will be ', sessionId )
+    // get information from token 
+    const { programId, sessionId: oldSessionId, id, role, email, sessionStatus: oldSessionStatus } = req.user;
+    let session_name;
+
+    console.log('User programId:', programId);
+    console.log('User old sessionId:', oldSessionId);
 
     let session_id, session_status;
 
-    // for users that currently dont have activated/unactivated session
-    if (sessionId === 'none') {
+    // if now user no session
+    if (oldSessionId === 'none') {
       const [sessionRow] = await pool.execute(
-      `SELECT session_id, session_status
-        FROM Session
-        WHERE session_status IN ('unactivated','activated')
-        AND program_id = ?`,
-        [programId]
-    );
-
-    // if no record means still no activated/unactivated session , return with session state of none
-    if (sessionRow.length === 0) {
-      session_id = 'none';
-      session_status = 'none';
-    } else { // else return with new session and its session state
-      ({ session_id, session_status } = sessionRow[0]);
-    }
-    
-    } else {
-      // for users that currently has activated/unactivated session, recheck their session state
-      const [sessionCheck] = await pool.execute(
-      `SELECT session_id, session_status
-        FROM Session
-        WHERE session_status IN ('unactivated','activated')
-        AND session_id = ?`,
-        [sessionId]
-    );
-
-    // if no record means session ends, return with session state of ended
-    if (sessionCheck.length === 0) {
-      session_id = 'none';
-      session_status = 'ended';
-    } else { // else update that session state
-      ({ session_id, session_status } = sessionCheck[0]);
-    }
-
-    }
-
-    // set all assign into false if no activated/unactivated session
-    if (session_status === 'none') {
-
-      await pool.execute(
-        `UPDATE CourseAssignment ca
-         JOIN Course c ON ca.course_id = c.course_id
-         SET ca.assign_status = FALSE
-         WHERE c.program_id = ? AND ca.assign_status = TRUE`,
+        `SELECT session_id, session_status, session_name
+         FROM Session
+         WHERE session_status IN ('unactivated', 'activated')
+         AND program_id = ?`,
         [programId]
       );
+
+      if (sessionRow.length === 0) {
+        session_id = 'none';
+        session_status = 'none';
+        session_name = 'none';
+      } else {
+        ({ session_id, session_status, session_name } = sessionRow[0]);
+      }
+
+    } else {
+      // got session, check status again
+      const [sessionCheck] = await pool.execute(
+        `SELECT session_id, session_status, session_name
+         FROM Session
+         WHERE session_status IN ('unactivated', 'activated')
+         AND session_id = ?`,
+        [oldSessionId]
+      );
+
+      if (sessionCheck.length === 0) {
+        session_id = 'none';
+        session_status = 'ended';
+        session_name = 'none;'
+      } else {
+        ({ session_id, session_status, session_name } = sessionCheck[0]);
+      }
     }
 
-    console.log('session id sended will be ', session_id )
-    console.log('session_status sended will be ', session_status )
+    console.log('Session after check:', { session_id, session_status, session_name });
 
-    return res.json({ session_id: session_id, session_status: session_status });
+    // check needs to update jwt token or not
+    if (oldSessionId !== session_id || oldSessionStatus !== session_status) {
+      const newPayload = {
+        id,
+        role,
+        email,
+        programId,
+        sessionId: session_id,
+        sessionStatus: session_status
+      };
+
+      const newToken = jwt.sign(newPayload, JWT_SECRET, { expiresIn: '5h' });
+
+      return res.json({ 
+        updated: true,
+        message: 'Session state updated, new token issued',
+        session_id,
+        session_status,
+        session_name,
+        token: newToken
+      });
+    }
+
+    // no update jwt
+    return res.json({
+      updated: false,
+      message: 'Session state unchanged',
+      session_id,
+      session_status,
+      session_name
+    });
 
   } catch (err) {
-    console.error('DB Error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Session check error:', err.message);
+
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+
+    return res.status(500).json({ message: 'Server error during session check' });
   }
-}
+};

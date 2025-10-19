@@ -2,7 +2,7 @@ const pool = require('../config/database.cjs');
 
 exports.fetchCurrentSession = async (req, res) => {
   try {
-    const { programId } = req.body;
+    const { programId } = req.user;
 
     const [rows] = await pool.execute(
       `SELECT session_id, session_name, starting_date, ending_date, session_status
@@ -26,10 +26,16 @@ exports.fetchCurrentSession = async (req, res) => {
 
 exports.createSession = async (req, res) => {
   try {
-    const { sessionName, sessionStartDate, sessionEndDate, programID } = req.body;
+    const { sessionName, sessionStartDate, sessionEndDate, sessionLeaveBalance } = req.body;
+    const programID = req.user.programId
+    const id = req.user.id
+
+    if (id !== 'hop') {
+      return res.json({ message: 'Warning: You do not have Permission to do this!' });
+    }
 
     const informationMessage = 'data received, sessionName: ' + sessionName + ' ,sessionDate: ' + sessionStartDate + 
-      ' ,sessionEndDate:' + sessionEndDate + ' ,programID: ' + programID;
+      ' ,sessionEndDate:' + sessionEndDate + ' ,programID: ' + programID + 'leave balance' + sessionLeaveBalance;
 
     console.log(informationMessage)
 
@@ -104,9 +110,9 @@ exports.createSession = async (req, res) => {
     console.log('3')
 
     await pool.execute(
-      `INSERT INTO Session (program_id, session_name, starting_date, ending_date, session_status)
-       VALUES (?, ?, ?, ?, ?)`,
-      [programID, sessionName, sessionStartDate, sessionEndDate, 'unactivated']
+      `INSERT INTO Session (program_id, session_name, starting_date, ending_date, session_status, leave_balance)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [programID, sessionName, sessionStartDate, sessionEndDate, 'unactivated', sessionLeaveBalance]
     );
 
     res.json({
@@ -121,7 +127,7 @@ exports.createSession = async (req, res) => {
 
 exports.fetchHolidays = async (req, res) => {
   try {
-    const { sessionId } = req.body;
+    const { sessionId } = req.user;
 
     const [rows] = await pool.execute(
       `SELECT session_id, session_name, starting_date, ending_date, session_status
@@ -152,7 +158,8 @@ exports.fetchHolidays = async (req, res) => {
 
 exports.addHoliday = async (req, res) => {
   try {
-    const { programID, holidayName, holidayStartDate, holidayEndDate } = req.body;
+    const { holidayName, holidayStartDate, holidayEndDate } = req.body;
+    const { programId:programID } = req.user;
 
     console.log(programID, holidayName, holidayStartDate, holidayEndDate)
 
@@ -221,7 +228,8 @@ exports.addHoliday = async (req, res) => {
 
 exports.editHoliday = async (req, res) => {
   try {
-    const { programID, holidayId, holidayName, holidayStartDate, holidayEndDate} = req.body;
+    const { holidayId, holidayName, holidayStartDate, holidayEndDate} = req.body;
+    const programID = req.user.programId;
 
     console.log(programID, holidayId, holidayName, holidayStartDate, holidayEndDate);
 
