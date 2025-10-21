@@ -12,6 +12,8 @@ const userManage = require('./routes/userManage.cjs')
 const leaveApplyManage = require('./routes/leaveApplyManage.cjs')
 const LRListManage = require('./routes/LRListManage.cjs')
 const leaveApproveManage = require('./routes/leaveApproveManage.cjs')
+const remarkManage = require('./routes/remarkManage.cjs')
+const chatbotManage = require('./routes/chatbotManage.cjs')
 // const uploadRoutes = require('./routes/upload.cjs');
 
 app.use(cors());
@@ -28,6 +30,8 @@ app.use('/api/userManage', userManage);
 app.use('/api/leaveApplyManage', leaveApplyManage);
 app.use('/api/LRListManage', LRListManage);
 app.use('/api/leaveApproveManage', leaveApproveManage);
+app.use('/api/remarkManage', remarkManage);
+app.use('/api/chatbotManage', chatbotManage);
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // app.use('/api', uploadRoutes);
 

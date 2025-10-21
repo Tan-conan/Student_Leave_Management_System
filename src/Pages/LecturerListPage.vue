@@ -146,6 +146,8 @@ const lecturerEmail = ref('')
 const lecturerContactNo = ref('')
 const pendingType = ref('')
 
+const remark = ref('')
+
 const selectedLecturerRow = ref('')
 
 const lecturerPendingModalVisible = ref(false)
@@ -183,6 +185,7 @@ async function approveLecturer() {
   try {
     const res = await api.post('/lecturerManage/approveLecturer', {
       lecturer_id: selectedLecturerRow.value.lecturer_id,
+      remark: remark.value ? remark.value : 'none',
     })
 
     confirmationModal.value = {
@@ -217,6 +220,7 @@ async function rejectLecturer() {
   try {
     const res = await api.post('/lecturerManage/deleteLecturer', {
       lecturer_id: selectedLecturerRow.value.lecturer_id,
+      remark: remark.value ? remark.value : 'none',
     })
 
     confirmationModal.value = {
@@ -266,7 +270,7 @@ function rowClickHandle(row) {
     :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
     <PendingUserModal v-model:user-menu-modal-visible="lecturerPendingModalVisible" :userName="lecturerName"
-     :userEmail="lecturerEmail" :contactNo="lecturerContactNo"
+     :userEmail="lecturerEmail" :contactNo="lecturerContactNo" v-model:remark="remark"
      :pendingType="pendingType" @approveClicked="approveModal" @rejectClicked="rejectModal"/>
 
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"

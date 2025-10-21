@@ -1,4 +1,5 @@
 const pool = require('../config/database.cjs');
+const sendEmail = require("../utils/email.cjs");
 
 exports.fetchStudentsList = async (req, res) => {
   try {
@@ -25,7 +26,32 @@ exports.fetchStudentsList = async (req, res) => {
 
 exports.approveStudent = async (req, res) => {
   try {
-    const { student_id } = req.body;
+    const { student_id, remark } = req.body;
+
+    // find student email
+    const [student] = await pool.execute( 
+      `SELECT student_email FROM Student WHERE student_id = ?`,
+      [student_id]
+    );
+    
+    // if got send email
+    if (student.length > 0) {
+      const studentEmail = student[0].student_email;
+      
+      const html = `
+      <h3>Account Registration Approved</h3>
+      <p>Dear Student,</p>
+      <p>Your account registration has been <b>Approved</b> by the Head of Programme.</p>
+      <p>Reason: ${remark}</p>
+      <p>You are now able to login using the registered account.</p>
+      `;
+
+    await sendEmail(studentEmail, "Account Registration Approved", html);
+
+    console.log('Approve email sent.')
+    } else {
+      console.log('find student email failed, will approve the account directly.')
+    }
 
     await pool.execute(
       `UPDATE Student
@@ -54,7 +80,32 @@ exports.approveStudent = async (req, res) => {
 
 exports.deleteStudent = async (req, res) => {
   try {
-    const { student_id } = req.body;
+    const { student_id, remark } = req.body;
+
+    // find student email
+    const [student] = await pool.execute( 
+      `SELECT student_email FROM Student WHERE student_id = ?`,
+      [student_id]
+    );
+    
+    // if got send email
+    if (student.length > 0) {
+      const studentEmail = student[0].student_email;
+      
+      const html = `
+      <h3>Account Registration Rejected</h3>
+      <p>Dear Student,</p>
+      <p>Your account registration has been <b>Rejected</b> by the Head of Programme.</p>
+      <p>Reason: ${remark}</p>
+      <p>If you believe this was a mistake, please contact your programme office.</p>
+      `;
+
+    await sendEmail(studentEmail, "Account Registration Rejected", html);
+
+    console.log('Rejected email sent.')
+    } else {
+      console.log('find student email failed, will reject the account directly.')
+    }
 
     // delete lecturer
     await pool.execute(

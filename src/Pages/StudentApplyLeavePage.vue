@@ -393,7 +393,7 @@ watch(selectedDateRange, (newVal) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-2 h-screen overflow-hidden">
     <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
     :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
@@ -403,10 +403,11 @@ watch(selectedDateRange, (newVal) => {
     <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
      @menu-clicked="userMenuModalVisible = true"/>
 
-    <div class="flex w-full items-stretch gap-2">
+     <!-- main container -->
+    <div class="flex w-full flex-1 min-h-0 items-stretch gap-2 overflow-hidden">
 
       <!--left-->
-      <div class="flex flex-col w-[60%] gap-2">
+      <div class="flex flex-col w-[60%] gap-2 overflow-y-auto min-h-0">
         <StudentApplyleaveInputs v-model:selected-date-range="selectedDateRange" v-model:user-name="userName" 
         v-model:user-type="userType" v-model:request-name="requestName" v-model:leave-reason="leaveReason"
         v-model:leaveType="leaveType" :userCurrentLeave="userCurrentLeave" :userPredictedLeave="userPredictedLeave"
@@ -417,16 +418,15 @@ watch(selectedDateRange, (newVal) => {
 
         <LeaveLecturerSelection v-model:user-type="userType" v-model:lecturerCourses="lecturerCourses"/>
 
-        <div class="flex gap-2 justify-end w-[100%]">
-          <ButtonUI word-class="Save leave record" width-class="w-auto" @update:word-class=""/>
+        <div class="flex gap-2 justify-end w-full">
           <ButtonUI word-class="Send leave record" width-class="w-auto" @update:word-class="sendRequestModal"/>
         </div>
 
       </div>
 
       <!--right-->
-      <div class="flex flex-col flex-1 gap-2 bg-ivory">
-        <ChatBotUI/> <!-- chat box here-->>
+      <div class="flex flex-col flex-1 gap-2 overflow-hidden bg-ivory min-h-0">
+        <ChatBotUI/>
     
       </div>
 

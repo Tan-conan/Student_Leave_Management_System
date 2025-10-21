@@ -146,6 +146,8 @@ const studentEmail = ref('')
 const studentContactNo = ref('')
 const pendingType = ref('')
 
+const remark = ref('')
+
 const selectedStudentRow = ref('')
 
 const studentPendingModalVisible = ref(false)
@@ -183,6 +185,7 @@ async function approveStudent() {
   try {
     const res = await api.post('/studentManage/approveStudent', {
       student_id: selectedStudentRow.value.student_id,
+      remark: remark.value ? remark.value : 'none',
     })
 
     confirmationModal.value = {
@@ -217,6 +220,7 @@ async function rejectStudent() {
   try {
     const res = await api.post('/studentManage/deleteStudent', {
       student_id: selectedStudentRow.value.student_id,
+      remark: remark.value ? remark.value : 'none',
     })
 
     confirmationModal.value = {
@@ -266,7 +270,7 @@ function rowClickHandle(row) {
     :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
     <PendingUserModal v-model:user-menu-modal-visible="studentPendingModalVisible" :userName="studentName"
-     :userEmail="studentEmail" :contactNo="studentContactNo"
+     :userEmail="studentEmail" :contactNo="studentContactNo" v-model:remark="remark"
      :pendingType="pendingType" @approveClicked="approveModal" @rejectClicked="rejectModal"/>
 
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"

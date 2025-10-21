@@ -7,9 +7,9 @@ import UserMenuModal from '../components/Common/UserMenuModal.vue';
 import LeaveFileAttachment from '../components/Common/LeaveFileAttachment.vue';
 import sendLecturerList from '../components/Common/sendLecturerList.vue';
 import ButtonUI from '../components/UI/ButtonUI.vue';
-import ChatBotUI from '../components/Common/ChatBotUI.vue';
 import LeaveApprovalInputs from '../components/Common/LeaveApprovalInputs.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
+import RemarkUI from '../components/Common/RemarkUI.vue';
 
 const route = useRoute()
 const router = useRouter()
@@ -53,10 +53,81 @@ const endDate = ref('')
 
 const leaveFiles = ref([])
 
-const approveModalVisible = ref(false)
-const rejectModalVisible = ref(false)
-
+// check lecturer/hop approved/rejected this leave before or not
 const viewerDicision = ref('')
+
+const newMessage = ref('')
+
+// remarkmessage
+const remarkMessages = ref([])
+
+// send remark
+function sendRemarkModal() {
+  if (!newMessage.value) {
+    confirmationModal.value = {
+    visible: true,
+    title: 'Send error',
+    message: 'The remark cannot be empty!',
+    action: '',
+    modalType: 'warning'
+  }
+  return;
+  }
+
+  confirmationModal.value = {
+    visible: true,
+    title: 'Send Confirmation',
+    message: 'Are you sure you want to send the remark?',
+    action: sendRemark,
+    modalType: 'confirmation'
+  }
+}
+
+async function sendRemark() {
+  try{
+    const res = await api.post('/remarkManage/sendRemark', {
+      remarkMessage: newMessage.value,
+      leave_id: leave_id.value
+    })
+
+    confirmationModal.value = {
+      visible: true,
+      title: res.data.successfully ? 'send successfully' : 'Send error',
+      message: res.data.message,
+      action: '',
+      modalType: 'warning'
+    }
+
+    newMessage.value =''
+    fetchRemark()
+
+  } catch(err){
+    alert('error occured when sending remark!');
+    return
+  }
+}
+
+async function fetchRemark() {
+  try{
+    const res = await api.post('/remarkManage/fetchRemark', {
+      leave_id: leave_id.value
+    })
+
+    if (res.data.remarkRows.length > 0) {
+      remarkMessages.value = res.data.remarkRows.map((r) => ({
+        id: r.remark_id,
+        role: r.role,
+        name: r.name,
+        content: r.remark_content,
+        time: new Date(r.remark_date).toLocaleDateString('en-ca')
+      }))
+    }
+
+  } catch(err){
+    console.log('error occured when fetching remark!');
+    return
+  }
+}
 
 async function findSessionRange() {
   try {
@@ -216,6 +287,7 @@ onMounted(async () => {
   fetchLeaveRequestInfo();
   fetchApprovementLecturers();
   fetchViewerDicision();
+  fetchRemark();
 
 })
 
@@ -352,51 +424,53 @@ async function rejectRequest() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
-    :modal-message="confirmationModal.message" @confirm="confirmModal"/>
+  <div class="flex flex-col gap-2 h-screen overflow-hidden">
 
-    <UserMenuModal v-model:userMenuModalVisible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
-     @update:user-menu-modal-visible="userMenuModalVisible = false"/>
+    <ComfirmationModal :modal-title="confirmationModal.title"
+      v-model:modelVisible="confirmationModal.visible"
+      :modalType="confirmationModal.modalType"
+      :modal-message="confirmationModal.message"
+      @confirm="confirmModal" />
 
-    <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
-     @menu-clicked="userMenuModalVisible = true"/>
+    <UserMenuModal v-model:userMenuModalVisible="userMenuModalVisible"
+      v-model:user-name="userName" v-model:user-type="userType"
+      @update:user-menu-modal-visible="userMenuModalVisible = false" />
 
-    <div class="flex w-full items-stretch gap-2">
+    <UserTopPageUI v-model:top-page-title="topPageTitle"
+      v-model:user-name="userName" v-model:user-type="userType"
+      @menu-clicked="userMenuModalVisible = true" />
 
-      <!--left-->
-      <div class="flex flex-col w-[60%] gap-2">
+   <!-- main container -->
+    <div class="flex w-full flex-1 min-h-0 items-stretch gap-2 overflow-hidden">
+
+      <!-- left -->
+      <div class="flex flex-col w-[60%] gap-2 overflow-y-auto min-h-0">
         <LeaveApprovalInputs :user-name="userName" :user-type="userType"
         :request-name="requestName" :leave-reason="leaveReason" :userPredictedLeave="userPredictedLeave"
         :submission-date="submissionDate" :start-date="startDate" :end-date="endDate" :request-valid-leave-day="requestValidLeaveDay"
         :leave-type="leaveType" :user-current-leave="userCurrentLeave" :studentName="studentName" :leaveStatus="leaveStatus"/>
 
-        <LeaveFileAttachment v-model:user-type="userType" v-model:leaveFiles="leaveFiles"/>
+        <LeaveFileAttachment v-model:user-type="userType" v-model:leaveFiles="leaveFiles" />
+        <sendLecturerList v-if="userType !== 'lecturer'" v-model:user-type="userType" v-model:lecturerCourses="lecturerApprovement" />
 
-        <sendLecturerList v-if="userType !== 'lecturer'" v-model:user-type="userType" v-model:lecturerCourses="lecturerApprovement"/>
-
-        <div class="flex gap-2 justify-end w-[100%]">
-          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' 
-          && leaveStatus !== 'final rejected' && viewerDicision === false)" 
-          word-class="Approve leave" width-class="w-auto" @update:word-class="approveLeaveModal"/>
-          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' 
-          && leaveStatus !== 'final rejected' && viewerDicision === false)" 
-          word-class="Reject leave" width-class="w-auto" @update:word-class="rejectLeaveModal"/>
+        <div class="flex gap-2 justify-end w-full">
+          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' && leaveStatus !== 'final rejected' && viewerDicision === false)"
+            word-class="Approve leave" width-class="w-auto" @update:word-class="approveLeaveModal" />
+          <ButtonUI v-if="(userType !== 'student' && leaveStatus !== 'final approved' && leaveStatus !== 'final rejected' && viewerDicision === false)"
+            word-class="Reject leave" width-class="w-auto" @update:word-class="rejectLeaveModal" />
         </div>
-
       </div>
 
-      <!--right-->
-      <div class="flex flex-col flex-1 gap-2 bg-ivory">
-        <ChatBotUI/>
-    
+      <!-- right -->
+      <div class="flex flex-col flex-1 gap-2 overflow-hidden bg-ivory min-h-0">
+        <RemarkUI class="flex-1 min-h-0" v-model:newMessage="newMessage" @sendMessage="sendRemarkModal" 
+        :remark-messages="remarkMessages" :leaveStatus="leaveStatus" :userType="userType"/>
       </div>
 
     </div>
-
   </div>
-
 </template>
+
 
 <style scoped>
 

@@ -1,4 +1,5 @@
 const pool = require('../config/database.cjs');
+const sendEmail = require("../utils/email.cjs");
 
 /*
 type of the leave file status
@@ -155,9 +156,9 @@ exports.approveRequest = async (req, res) => {
         return res.json({message: 'failed to final approve this request when approving as hop!'})
       }
 
-      // fetch leave days of this leave
+      // fetch leave days student id and leave name of this leave
       const [leaveInfo] = await pool.execute(
-      `SELECT leave_days, student_id
+      `SELECT leave_days, student_id, leave_name
         FROM LeaveRequest
         WHERE leave_id = ?`,
         [leave_id]
@@ -177,6 +178,31 @@ exports.approveRequest = async (req, res) => {
 
       if (minusLeaveBalance.length === 0) {
         return res.json({message: 'failed to decrease leave balance!'})
+      }
+
+      // find student email
+      const [student] = await pool.execute( 
+        `SELECT student_email FROM Student WHERE student_id = ?`,
+        [leaveInfo[0].student_id]
+      );
+    
+      // if got send email
+      if (student.length > 0) {
+        const studentEmail = student[0].student_email;
+        
+        const html = `
+        <h3>Leave Request Final Approved</h3>
+        <p>Dear Student,</p>
+        <p>Your leave request of <b> ${leaveInfo[0].leave_name} </b> has been <b> Final Approved</b> by the Head of Programme.</p>
+        <p>You may log in HavaBreak to look for any possible remarks.</p>
+        `;
+        
+        await sendEmail(studentEmail, "Leave Request Final Approved", html);
+        
+        console.log('Final Approve email sent.')
+      
+      } else {
+        console.log('find student email failed.')
       }
 
     } else { // not lecturer, not hop, no permission to approve the request
@@ -292,9 +318,9 @@ exports.rejectRequest = async (req, res) => {
         return res.json({message: 'failed to final approve this request when approving as hop!'})
       }
 
-      // fetch leave days of this leave
+      // fetch leave days, student id and leave name of this leave
       const [leaveInfo] = await pool.execute(
-      `SELECT leave_days, student_id
+      `SELECT leave_days, student_id, leave_name
         FROM LeaveRequest
         WHERE leave_id = ?`,
         [leave_id]
@@ -314,6 +340,31 @@ exports.rejectRequest = async (req, res) => {
 
       if (minusLeaveBalance.length === 0) {
         return res.json({message: 'failed to decrease leave balance!'})
+      }
+      
+      // find student email
+      const [student] = await pool.execute( 
+        `SELECT student_email FROM Student WHERE student_id = ?`,
+        [leaveInfo[0].student_id]
+      );
+    
+      // if got send email
+      if (student.length > 0) {
+        const studentEmail = student[0].student_email;
+        
+        const html = `
+        <h3>Leave Request Final Rejected</h3>
+        <p>Dear Student,</p>
+        <p>Your leave request of <b> ${leaveInfo[0].leave_name} </b> has been <b> Final Rejected</b> by the Head of Programme.</p>
+        <p>You may log in HavaBreak to look for any possible remarks.</p>
+        `;
+        
+        await sendEmail(studentEmail, "Leave Request Final Rejected", html);
+        
+        console.log('Final Reject email sent.')
+      
+      } else {
+        console.log('find student email failed.')
       }
 
     } else { // not lecturer, not hop, no permission to approve the request
@@ -371,7 +422,7 @@ exports.fetchApprovementLecturers = async (req, res) => {
     const { leave_id } = req.body;
 
     const [rows] = await pool.execute(
-      `SELECT l.lecturer_name, l.lecturer_status, la.approve_status, la.approve_date, la.approve_remark
+      `SELECT l.lecturer_name, l.lecturer_status, la.approve_status, la.approve_date
       FROM LecturerApproval la
       INNER JOIN Lecturer l ON la.lecturer_id = l.lecturer_id
       WHERE la.leave_id = ?`,

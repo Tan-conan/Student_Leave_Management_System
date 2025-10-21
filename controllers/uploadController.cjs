@@ -8,7 +8,6 @@ exports.uploadFiles = async (req, res) => {
       file_url: `/uploads/${file.filename}`,
     }));
 
-    // 这里可以插入数据库，例如：
     // await pool.execute('INSERT INTO LeaveFiles (leave_id, file_name, file_url) VALUES (?, ?, ?)', [...]);
 
     res.json({

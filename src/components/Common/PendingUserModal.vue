@@ -6,8 +6,6 @@ import WordsUI from '../UI/WordsUI.vue';
 import ModalCloseUI from '../UI/ModalCloseUI.vue';
 import TextAreaUI from '../UI/TextAreaUI.vue';
 
-const remark = ref('')
-
 const props = defineProps({
     userMenuModalVisible:{type:Boolean, default:false},
     pendingType:{type:String, default:''},
@@ -15,9 +13,10 @@ const props = defineProps({
     userSID:{type:String, default:''},
     userEmail:{type:String, default:''},
     contactNo:{type:String, default:''},
+    remark:{type:String, default:''},
 })
 
-const emit = defineEmits(['update:userMenuModalVisible','approveClicked','rejectClicked'])
+const emit = defineEmits(['update:userMenuModalVisible','approveClicked','rejectClicked', 'update:remark'])
 console.log('username is ' + props.userName)
 
 function MenuClosing(){
@@ -72,7 +71,7 @@ function rejecting(){
 
     <WordsUI word-class="Remark:"/>
 
-    <TextAreaUI v-model:inputValue="remark" :rows="5" :maxLength="300" widthClass="w-[100%]"/>
+    <TextAreaUI :inputValue="remark" :rows="5" :maxLength="300" widthClass="w-[100%]" @update:input-value="val => emit('update:remark',val)"/>
 
   </ModalUI>
 

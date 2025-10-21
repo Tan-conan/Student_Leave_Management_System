@@ -95,7 +95,7 @@ function updateLeaveReason(val) {
 </div>
 
 <WordsUI word-class="Reason to leave:"/>
-<TextAreaUI :inputValue="leaveReason" :rows="5" :maxLength="500" widthClass="w-[100%]" @update:input-value="updateLeaveReason"/>
+<TextAreaUI :inputValue="leaveReason" :rows="5" :maxLength="500" widthClass="w-[100%] min-h-[240px]" @update:input-value="updateLeaveReason"/>
 
 
 </template>
