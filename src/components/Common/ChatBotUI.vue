@@ -17,8 +17,7 @@ watch(messages, (newVal) => {
 }, { deep: true });
 
 window.addEventListener('beforeunload', () => {
-  // 刷新时不会触发 router 离开事件，但会走这里
-  // 我们不清空，因为 sessionStorage 会自动保留
+
 });
 
 onBeforeRouteLeave(() => {

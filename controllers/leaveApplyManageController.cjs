@@ -155,7 +155,7 @@ exports.sendRequest = async (req, res) => {
       );
     }
 
-    return res.json({message: 'saved successfully', successfully:true})
+    return res.json({message: 'saved successfully', successfully:true, leaveId: result.insertId})
 
   } catch (err) {
     console.error('DB Error:', err);

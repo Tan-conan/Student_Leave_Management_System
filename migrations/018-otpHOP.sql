@@ -1,14 +1,14 @@
-CREATE TABLE IF NOT EXISTS otpStudent (
-  otp_stu_id      INT AUTO_INCREMENT PRIMARY KEY,
-  student_id      VARCHAR(20) NULL,
+CREATE TABLE IF NOT EXISTS otpHOP (
+  otp_hop_id      INT AUTO_INCREMENT PRIMARY KEY,
+  hop_id          INT NULL,
   otp_code        VARCHAR(10) NOT NULL,
   otp_status      BOOLEAN DEFAULT TRUE,
   expires_at      DATETIME NOT NULL,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT fk_student_otp
-    FOREIGN KEY (student_id)
-    REFERENCES Student (student_id)
+  CONSTRAINT fk_hop_otp
+    FOREIGN KEY (hop_id)
+    REFERENCES HOP (hop_id)
     ON DELETE SET NULL
     ON UPDATE CASCADE
 

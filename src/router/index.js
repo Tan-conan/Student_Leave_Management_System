@@ -1,3 +1,5 @@
+// createRouter(): Creates a router instance.
+// createWebHistory(): Enables the browser's history mode.
 import { createRouter, createWebHistory } from 'vue-router'
 
 import LoginPage from '../Pages/LoginPage.vue'

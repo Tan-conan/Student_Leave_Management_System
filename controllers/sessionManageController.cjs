@@ -64,7 +64,13 @@ exports.createSession = async (req, res) => {
       });
     }
 
-    console.log('1')
+    for (const row of existingSessions) {
+      if (row.session_name === sessionName) {
+        return res.json({
+          message: `This session name "${sessionName}" already taken by another session!`
+        });
+      }
+    }
 
     // find overlap if exist stop inserting session
     const overlap = existingSessions.find(row => {
@@ -93,8 +99,6 @@ exports.createSession = async (req, res) => {
       });
     }
 
-    console.log('2')
-
     // new session cannot earlier than today
     const today = new Date();
     const startDate = new Date(sessionStartDate);
@@ -106,8 +110,6 @@ exports.createSession = async (req, res) => {
         message: 'Session start date cannot be earlier than today!'
       });
     }
-
-    console.log('3')
 
     await pool.execute(
       `INSERT INTO Session (program_id, session_name, starting_date, ending_date, session_status, leave_balance)

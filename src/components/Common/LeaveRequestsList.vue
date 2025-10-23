@@ -128,7 +128,7 @@ watch(searchingValue,(newval) => {
     </div>
 
     <div v-if="manageRecords.length === 0" class="flex items-center justify-center w-full flex-1 border-greenSoft border-2 bg-ivory">
-        <WordsUI word-class="currently no session available for this program or no records for this session"/>
+        <WordsUI word-class="currently no session available or no records send for this session"/>
     </div>
     <RecordListUI v-else :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>

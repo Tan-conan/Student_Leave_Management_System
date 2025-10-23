@@ -8,6 +8,7 @@ import LoginCheckboxes from '../components/Common/LoginCheckboxes.vue';
 import LoginButtons from '../components/Common/LoginButtons.vue';
 import LoginModals from '../components/Common/LoginModals.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
+import OtpModal from '../components/Common/otpModal.vue';
 
 const router = useRouter()
 
@@ -19,7 +20,8 @@ const currentRadioValue = ref('') // user role selection
 const clickedButtonValue = ref('') // detect which button clicked
 
 const forgotPassModalVisible = ref(false) // toggle forgot password modals on and off
-const noRoleModalVisible = ref(false)
+const otpModalVisible = ref(false)
+const otpCode = ref('')
 
 const confirmationModal = ref({
   visible: false,
@@ -54,7 +56,7 @@ watch(clickedButtonValue, (newVal) => {
   if (newVal === 'Sign Up') {
     goSignUp()
   } else if (newVal === 'Login') {
-    userLogin()
+    userVerify()
   }
   clickedButtonValue.value = ''
 })
@@ -63,9 +65,9 @@ function goSignUp() {
   router.push('/Signup')
 }
 
-async function userLogin() {
+async function userVerify() {
   try {
-    const res = await axios.post('http://localhost:3000/api/auth/login', {
+    const res = await axios.post('http://localhost:3000/api/auth/userVerify', {
       role: currentRadioValue.value,
       email: userEmail.value,
       password: userPassword.value,
@@ -81,6 +83,34 @@ async function userLogin() {
     }
     return;
     }
+
+    otpModalVisible.value = true
+
+  } catch (err) { // catch error if failed
+    console.error(err)
+    alert('Verify failed: ' + (err.response?.data?.message || err.message))
+  }
+}
+
+async function userLogin() {
+  try {
+    const res = await axios.post('http://localhost:3000/api/auth/userLogin', {
+      role: currentRadioValue.value,
+      email: userEmail.value,
+    })
+
+    if(!res.data.successfully) {
+      confirmationModal.value = {
+      visible: true,
+      title: 'Login Warning',
+      message: res.data.message,
+      action: null,
+      modalType: 'warning',
+    }
+    return;
+    }
+
+    otpModalVisible.value = false
 
     //if login success
     localStorage.setItem('token', res.data.token) // token data for backend use
@@ -126,6 +156,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <OtpModal v-model:otpModalVisible="otpModalVisible" v-model:otpCode="otpCode" v-model:email="userEmail" 
+  v-model:role="currentRadioValue" @startLogin="userLogin"/>
 
   <LoginModals v-model:forgot-pass-modal-visible="forgotPassModalVisible"/>
 

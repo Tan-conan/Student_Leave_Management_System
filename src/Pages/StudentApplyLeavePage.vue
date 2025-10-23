@@ -43,6 +43,24 @@ const leaveReason = ref('');
 
 const leaveFiles = ref([])
 
+async function uploadFiles(leaveId) {
+  const formData = new FormData();
+  formData.append('leave_id', leaveId);
+
+  for (const file of leaveFiles.value) {
+    formData.append('files', file.file_object); 
+  }
+
+  try {
+    const res = await api.post('/leaveFileManage/uploadLeaveFiles', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    alert(res.data.message);
+  } catch (err) {
+    console.error('Upload failed:', err);
+  }
+}
+
 async function verifyDateRange(newval) {
   try {
 
@@ -354,22 +372,24 @@ async function sendRequest() {
     if (!res.data.successfully) {
       confirmationModal.value = {
         visible: true,
-        title: 'session creation',
+        title: 'Leave request submittion error',
         message: res.data.message,
         action: null,
         modalType: 'warning'
       }
+      return;
     }
 
     if (res.data.successfully) {
       confirmationModal.value = {
         visible: true,
-        title: 'session creation',
+        title: 'Leave request submission complete',
         message: res.data.message,
         action: null,
         modalType: 'warning'
       }
       checkStudentLeaveBalance();
+      uploadFiles(res.data.leaveId)
     }
 
   } catch (err) {

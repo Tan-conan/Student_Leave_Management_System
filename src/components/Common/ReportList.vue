@@ -3,7 +3,7 @@ import ButtonUI from '../UI/ButtonUI.vue';
 import DropdownUI from '../UI/DropdownUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
-import { ref, computed, watch, defineProps } from 'vue';
+import { ref, computed, watch, defineProps, defineEmits } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import PendingUserModal from './PendingUserModal.vue';
 
@@ -17,8 +17,13 @@ const pendingType = ref('')
 
 const props = defineProps({
  userName:{type:String, default: ''},
+ selectedSession:{type:String, default: ''},
  userType:{type:String, default: ''},
+ sessionList:{type:Array, default: () => []},
+ reportList:{type:Array, default: () => []},
 });
+
+const emit = defineEmits(['update:selectedSession'])
 
 // for sorting
 const currentSortKey = ref(''); // current sorting key
@@ -29,7 +34,6 @@ const searchValue = ref('') // confirmed search value
 const searchingValue = ref('') // user still typing searching value
 
 // for filtering
-const filterList = ref(['None','Pending','Active','Inactive']) // dropdown filter menu
 const filterValue = ref('') // current selected filter keyword
 
 const studentPendingModalVisible = ref(false)
@@ -39,21 +43,16 @@ const tableHeads = ref([
     {key:'sid' , label:'Student ID'},
     {key:'student_name' , label:'Student Name'},
     {key:'leave_count' , label:'Leave Count'},
-    {key:'leave_days' , label:'Leave Days'},
+    {key:'current_leave' , label:'Current Leave'},
+    {key:'predicted_leave' , label:'Predicted Leave'},
     {key:'email' , label:'Email'},
 ])
 
-const studentLeavesList = ref([
-  { sid: 'S001', student_name: 'Alice Tan',  leave_count: 2, leave_days: 5,  email: 'alice.tan@example.com' },
-  { sid: 'S002', student_name: 'Brian Lee',  leave_count: 1, leave_days: 2,  email: 'brian.laaaaaaaaaaaee@example.com' },
-  { sid: 'S003', student_name: 'Chong Wei',  leave_count: 3, leave_days: 7,  email: 'chong.wei@example.com' },
-  { sid: 'S004', student_name: 'Daphne Ng',  leave_count: 0, leave_days: 0,  email: 'daphne.ng@example.com' },
-  { sid: 'S005', student_name: 'Ethan Wong', leave_count: 4, leave_days: 10, email: 'ethan.wong@example.com' },
-])
+
 
 // managing user filter, search and sort functions at once
 const manageRecords = computed(function(){
-    let filteredRecords = studentLeavesList.value
+    let filteredRecords = props.reportList
 
     if (currentSortKey.value) { // if user got sort then calculate this  
         filteredRecords = [...filteredRecords].sort((a,b) => {
@@ -83,22 +82,6 @@ const manageRecords = computed(function(){
 
 function backToLogin() {
   router.push('/')
-}
-
-function rowClickHandle(row) {
-    if (row.status === 'Pending') {
-        studentName.value = row.student_name;
-        console.log('student name' + studentName.value)
-        studentSID.value = row.sid;
-        console.log('student SID' + studentSID.value)
-        studentEmail.value = row.email;
-        console.log('student email' + studentEmail.value)
-        studentContactNo.value = row.contact_no;
-        pendingType.value = 'Student';
-        console.log('pending type' + pendingType.value)
-        studentPendingModalVisible.value = true;
-    }
-    
 }
 
 function buttonClicked(val) {
@@ -131,7 +114,8 @@ watch(searchingValue,(newval) => {
 
         <div class="flex items-center justify-center gap-2 w-[50%]">
 
-            <DropdownUI v-model:dropdown-value = 'filterValue' :options="filterList" placeholder="Filter By"width-class="w-[30%]"/>
+            <DropdownUI :dropdown-value = "selectedSession" :options="props.sessionList" 
+            placeholder="Select session"width-class="w-[50%]" @update:dropdown-value="val => emit('update:selectedSession',val)"/>
 
             <InputUI v-model:input-value="searchingValue" name-of-placeholder="Search by name" 
             width-class="flex-1" @keyup.enter="buttonClicked('Search')"/>
@@ -142,7 +126,7 @@ watch(searchingValue,(newval) => {
     </div>
 
     <RecordListUI :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
-    v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>
+    v-model:current-sort-order="currentSortOrder" height-class="flex-1"/>
 
 </div>
 

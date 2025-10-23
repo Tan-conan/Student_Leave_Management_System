@@ -10,9 +10,7 @@ CREATE TABLE IF NOT EXISTS otpLecturer (
     FOREIGN KEY (lecturer_id)
     REFERENCES Lecturer (lecturer_id)
     ON DELETE SET NULL
-    ON UPDATE CASCADE,
-
-  UNIQUE KEY unique_active_otp (lecturer_id, otp_status)
+    ON UPDATE CASCADE
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

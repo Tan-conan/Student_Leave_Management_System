@@ -1,11 +1,11 @@
 <script setup>
 import ButtonUI from '../UI/ButtonUI.vue';
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits, watch } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
 const props = defineProps({
-  userType: { type: String, default: '' },
+  pageType: { type: String, default: 'apply' },
   leaveFiles: { type: Array, default: [] },
 });
 
@@ -14,15 +14,32 @@ const emit = defineEmits(['update:leaveFiles']);
 // local files
 const localFiles = ref([]);
 
+// 
+watch(
+  () => props.leaveFiles,
+  (newVal) => {
+    localFiles.value = [...newVal];
+  },
+  { immediate: true }
+);
+
 // sorting
 const currentSortKey = ref('');
 const currentSortOrder = ref('asc');
 
-const tableHeads = ref([
-  { key: 'id', label: 'ID' },
-  { key: 'file_name', label: 'File Name' },
-  { key: 'delete', label: 'Delete' },
-]);
+const tableHeads = computed(() => {
+  const heads = [
+    { key: 'id', label: 'ID' },
+    { key: 'file_name', label: 'File Name' },
+  ];
+
+  if (props.pageType === 'apply') {
+    heads.push({ key: 'delete', label: 'Delete' });
+  }
+
+  return heads;
+});
+
 
 // computed final list (sorted)
 const manageFiles = computed(() => {
@@ -43,10 +60,48 @@ const manageFiles = computed(() => {
   return files;
 });
 
-// click row → open file
-function rowClickHandle(row) {
-  if (row.file_url) window.open(row.file_url, '_blank');
+// click row → fetch + blob download (works with verifyToken)
+async function rowClickHandle(row) {
+  if (!row.file_url) return; // return if no url
+
+  // backend base url
+  const backendBase = import.meta.env.VITE_API_BASE;
+  const downloadUrl = `${backendBase}${row.file_url}`;
+
+  // take token from localstorage for verification
+  const token = localStorage.getItem('token');
+
+  try {
+    const resp = await fetch(downloadUrl, { // manually add authentication header
+      method: 'GET',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
+
+    if (!resp.ok) { // if got error return error message 
+      const txt = await resp.text();
+      console.error('Download failed', resp.status, txt);
+      alert('Download failed: ' + resp.status + ' — see console');
+      return;
+    }
+
+    const blob = await resp.blob(); // change resp into blob type
+    const url = window.URL.createObjectURL(blob); //change blob into url can visit in browser
+
+    const a = document.createElement('a'); // create temporilary <a> to simulate tapping for broswer download the file
+    a.href = url;
+    a.download = row.file_name || 'download';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url); // clear url
+  } catch (err) {
+    console.error('fetch download error', err);
+    alert('Download error: see console');
+  }
 }
+
 
 // delete file
 function deleteFile(id) {
@@ -85,12 +140,7 @@ function addnewFile() {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
       <WordsUI word-class="Attached Files"/>
-      <ButtonUI
-        v-if="props.userType === 'student'"
-        word-class="Add new file"
-        width-class="w-auto"
-        @update:word-class="addnewFile"
-      />
+      <ButtonUI v-if="props.pageType === 'apply'" word-class="Add new file" width-class="w-auto" @update:word-class="addnewFile"/>
     </div>
 
     <RecordListUI
@@ -102,9 +152,7 @@ function addnewFile() {
       @row-clicked="rowClickHandle"
     >
       <template #delete="{ row }">
-        <button 
-          class="bg-greenSoft text-white px-3 py-1 rounded"
-          @click="deleteFile(row.id)">
+        <button class="bg-greenSoft text-white px-3 py-1 rounded" @click="deleteFile(row.id)"> 
           Delete
         </button>
       </template>

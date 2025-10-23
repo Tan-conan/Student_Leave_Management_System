@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS LeaveFile (
+  file_id INT AUTO_INCREMENT PRIMARY KEY,
+  leave_id INT NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_data LONGBLOB NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  
+  CONSTRAINT fk_leave_file
+    FOREIGN KEY (leave_id)
+    REFERENCES LeaveRequest (leave_id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

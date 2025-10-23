@@ -61,6 +61,22 @@ const newMessage = ref('')
 // remarkmessage
 const remarkMessages = ref([])
 
+async function fetchLeaveFiles() {
+  try {
+    const res = await api.get(`/leaveFileManage/getLeaveFiles/${leave_id.value}`);
+    if (res.data.files) {
+      leaveFiles.value = res.data.files.map((f, index) => ({
+        id: f.file_id,  // use file id as unique id
+        file_name: f.file_name,
+        file_url: `/api/leaveFileManage/downloadLeaveFile/${f.file_id}`, // create download id
+      }));
+    }
+  } catch (err) {
+    console.error("Error fetching leave files:", err);
+  }
+}
+
+
 // send remark
 function sendRemarkModal() {
   if (!newMessage.value) {
@@ -288,6 +304,7 @@ onMounted(async () => {
   fetchApprovementLecturers();
   fetchViewerDicision();
   fetchRemark();
+  fetchLeaveFiles();
 
 })
 
@@ -450,7 +467,7 @@ async function rejectRequest() {
         :submission-date="submissionDate" :start-date="startDate" :end-date="endDate" :request-valid-leave-day="requestValidLeaveDay"
         :leave-type="leaveType" :user-current-leave="userCurrentLeave" :studentName="studentName" :leaveStatus="leaveStatus"/>
 
-        <LeaveFileAttachment v-model:user-type="userType" v-model:leaveFiles="leaveFiles" />
+        <LeaveFileAttachment pageType="approvement" v-model:leaveFiles="leaveFiles" />
         <sendLecturerList v-if="userType !== 'lecturer'" v-model:user-type="userType" v-model:lecturerCourses="lecturerApprovement" />
 
         <div class="flex gap-2 justify-end w-full">

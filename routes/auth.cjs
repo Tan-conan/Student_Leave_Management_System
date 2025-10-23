@@ -5,7 +5,11 @@ const authController = require('../controllers/authController.cjs');
 
 router.post('/register', authController.register);
 
-router.post('/login', authController.login);
+router.post('/userVerify', authController.userVerify);
+
+router.post('/otpCodeCheck', authController.otpCodeCheck);
+
+router.post('/userLogin', authController.userlogin);
 
 router.get('/programs', authController.programList);
 

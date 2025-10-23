@@ -14,7 +14,8 @@ const LRListManage = require('./routes/LRListManage.cjs')
 const leaveApproveManage = require('./routes/leaveApproveManage.cjs')
 const remarkManage = require('./routes/remarkManage.cjs')
 const chatbotManage = require('./routes/chatbotManage.cjs')
-// const uploadRoutes = require('./routes/upload.cjs');
+const reportManage = require('./routes/reportManage.cjs')
+const leaveFileManage = require('./routes/leaveFileManage.cjs');
 
 app.use(cors());
 app.use(express.json());
@@ -32,8 +33,8 @@ app.use('/api/LRListManage', LRListManage);
 app.use('/api/leaveApproveManage', leaveApproveManage);
 app.use('/api/remarkManage', remarkManage);
 app.use('/api/chatbotManage', chatbotManage);
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// app.use('/api', uploadRoutes);
+app.use('/api/reportManage', reportManage);
+app.use('/api/leaveFileManage', leaveFileManage);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));

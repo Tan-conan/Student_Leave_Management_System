@@ -1,4 +1,3 @@
-// utils/email.cjs
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
