@@ -159,8 +159,6 @@ onMounted(() => {
   <OtpModal v-model:otpModalVisible="otpModalVisible" v-model:otpCode="otpCode" v-model:email="userEmail" 
   v-model:role="currentRadioValue" @startLogin="userLogin"/>
 
-  <LoginModals v-model:forgot-pass-modal-visible="forgotPassModalVisible"/>
-
   <ComfirmationModal :modal-title="confirmationModal.title" v-model:modelVisible="confirmationModal.visible" :modalType="confirmationModal.modalType"
   :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 

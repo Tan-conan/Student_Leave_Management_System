@@ -11,6 +11,7 @@ const props = defineProps({
   courseName:{type:String, default: ''},
   courseCode:{type:String, default: ''},
   courseLecturer:{type:String, default: ''},
+  userSessionStatus:{type:String, default: ''},
   lecturerNameList:{type:Array, default:[]},
   userMenuModalVisible:{type:Boolean, default:false},
 });
@@ -25,8 +26,6 @@ watch(
     }
   }
 )
-
-
 
 const emit = defineEmits(['update:userMenuModalVisible','delete','save','update:courseLecturer',
 'update:courseName','update:courseCode'])
@@ -67,8 +66,9 @@ function saving(){
         </div>
         <div class="flex gap-2">
             <WordsUI word-class="Course Lecturer:"/>
-            <DropdownUI :dropdown-value="`${courseLecturer}`" :options="lecturerNameList" width-class="flex-1"
+            <DropdownUI v-if="userSessionStatus === 'unactivated'" :dropdown-value="`${courseLecturer}`" :options="lecturerNameList" width-class="flex-1"
              @update:dropdown-value="val => emit('update:courseLecturer', val)"/>
+             <WordsUI v-else :word-class="courseLecturer"/>
         </div>
         
     </div>

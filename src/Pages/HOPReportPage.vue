@@ -25,6 +25,7 @@ const userSessionStatus = ref('')
 
 const sessionList = ref([])
 const selectedSession = ref('')
+const sessionLeaveBalance = ref('none')
 
 // student leave infos list
 const reportList = ref([])
@@ -59,11 +60,14 @@ async function fetchLeaveReport() {
       reportList.value = res.data.reportRows.map(row => ({
         sid: row.student_id,
         student_name: row.student_name,
-        leave_count: row.leave_count,
+        total_leave_days: row.total_leave_days,
         current_leave: row.current_leave,
         predicted_leave: row.predicted_leave,
+        attendance_rate: row.attendance_rate,
         email: row.student_email
       }));
+      sessionLeaveBalance.value = res.data.total_session_days
+      console.log(sessionLeaveBalance.value)
     }
 
   } catch (err) {
@@ -171,7 +175,7 @@ async function sessionChecker() {
      @menu-clicked="userMenuModalVisible = true"/>
 
     <ReportList v-model:user-name="userName" v-model:user-type="userType" v-model:reportList="reportList" 
-    :session-list="sessionList" v-model:selectedSession="selectedSession"/>
+    :session-list="sessionList" v-model:selectedSession="selectedSession" :sessionLeaveBalance="sessionLeaveBalance"/>
 
   </div>
 

@@ -26,7 +26,10 @@ const searchValue = ref('') // confirmed search value
 const searchingValue = ref('') // user still typing searching value
 
 // for filtering
-const filterList = ref(['None','Pending','Approved','Rejected','Annual','Medical']) // dropdown filter menu
+const filterList = ref([ 'None', 'pending', 'progressing', 'lecturer approved', 'lecturer rejected', 'final approved',
+                         'final rejected', 'sick leave', 'emergency leave', 'personal leave', 'family leave', 'official leave',
+                         'study leave', 'other']) // dropdown filter menu
+                         
 const filterValue = ref('') // current selected filter keyword
 
 const tableHeads = ref([

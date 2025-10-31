@@ -24,39 +24,78 @@ exports.fetchSessionList = async (req, res) => {
 
 exports.fetchLeaveReport = async (req, res) => {
   try {
-    const { sessionName } = req.body
+    const { sessionName } = req.body;
 
-    console.log( sessionName )
-
-    const [fetchSessionId] = await pool.execute(`
-      SELECT session_id
+    // get session id + session date
+    const [fetchSession] = await pool.execute(`
+      SELECT session_id, starting_date, ending_date
       FROM Session
       WHERE session_name = ?`,
       [sessionName]
     );
 
-    if (fetchSessionId.length === 0) {
-      return res,json({message:'session Id not found, fetch report failed!'})
+    if (fetchSession.length === 0) {
+      return res.json({ message: 'Session ID not found, fetch report failed!' });
     }
-    
+
+    const { session_id, starting_date, ending_date } = fetchSession[0];
+
+    // calculate session day
+    const sessionStart = new Date(starting_date);
+    const sessionEnd = new Date(ending_date);
+    const totalSessionDays = Math.floor(
+      (sessionEnd - sessionStart) / (1000 * 60 * 60 * 24)
+    ) + 1;
+
+    // fetch student info
     const [reportRows] = await pool.execute(`
-      SELECT sl.student_id, st.student_name, sl.current_leave, sl.predicted_leave, st.student_email,
-        COUNT(l.leave_id) AS leave_count
+      SELECT 
+        sl.student_id, 
+        st.student_name, 
+        st.student_email,
+        sl.current_leave, 
+        sl.predicted_leave,
+        IFNULL(SUM(l.leave_days), 0) AS total_leave_days
       FROM SessionLeave sl
-      JOIN Student st ON sl.student_id = st.student_id
+      JOIN Student st 
+        ON sl.student_id = st.student_id
       LEFT JOIN LeaveRequest l 
         ON sl.student_id = l.student_id 
-        AND sl.session_id = l.session_id
+        AND sl.session_id = l.session_id 
+        AND l.leave_status = 'final approved'
       WHERE sl.session_id = ?
-      GROUP BY sl.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave
-      ORDER BY st.student_name ASC`, 
-      [fetchSessionId[0].session_id]
+      GROUP BY 
+        sl.student_id, 
+        st.student_name, 
+        st.student_email, 
+        sl.current_leave, 
+        sl.predicted_leave
+      ORDER BY st.student_name ASC`,
+      [session_id]
     );
 
-    return res.json({reportRows});
-    
+    // calculate attendance rate
+    const reportWithAttendance = reportRows.map(row => {
+      const attendanceRate =
+        totalSessionDays > 0
+          ? (((totalSessionDays - row.total_leave_days) / totalSessionDays) * 100).toFixed(2)
+          : 0;
+      return {
+        ...row,
+        total_session_days: totalSessionDays,
+        attendance_rate: `${attendanceRate}%`
+      };
+    });
+
+    console.log('session days:', totalSessionDays)
+    return res.json({
+      total_session_days: totalSessionDays,
+      reportRows: reportWithAttendance
+    });
+
+
   } catch (err) {
     console.error('DB Error:', err);
     res.status(500).json({ message: 'Server error' });
   }
-}
+};

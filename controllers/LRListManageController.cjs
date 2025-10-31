@@ -11,9 +11,9 @@ exports.fetchOwnStudentLeaveRequest = async (req, res) => {
     const [rows] = await pool.execute(
       `SELECT leave_id, leave_date, end_date, leave_name, leave_type, leave_status, submission_date
         FROM LeaveRequest
-        WHERE student_id = ?
+        WHERE student_id = ? AND session_id = ?
         ORDER BY leave_id ASC`,
-        [id]
+        [id, sessionId]
     );
 
     // no matter got result or not return it

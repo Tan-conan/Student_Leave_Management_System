@@ -460,6 +460,9 @@ async function addHoliday() {
       modalType: 'warning'
     }
 
+    newHolidayName.value = ''
+    newHolidayDate.value = null
+
   } catch (err) {
     console.error(err);
     alert('Session error: ' + (err.response?.data?.message || err.message));

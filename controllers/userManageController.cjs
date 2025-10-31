@@ -72,7 +72,9 @@ exports.fetchOwnUser = async (req, res) => {
   try {
     const { programId, role, id } = req.user;
 
+    // if user own is student
     if (role === 'student') {
+        // fetch student info
         const [studentInfo] = await pool.execute(
             `SELECT student_name, student_status, date_join, student_email, contact_no
             FROM Student
@@ -84,6 +86,7 @@ exports.fetchOwnUser = async (req, res) => {
             return res.json({ message: 'No student found!' });
         }
         
+        // fetch program
         const [programName] = await pool.execute(
             `SELECT program_name
             FROM Program
@@ -98,7 +101,9 @@ exports.fetchOwnUser = async (req, res) => {
         res.json({ user: studentInfo, programName: programName , successfully:true});
     }
 
+    // if user own is lecturer
     if (role === 'lecturer') {
+        // fetch lecturer info
         const [lecturerInfo] = await pool.execute(
             `SELECT lecturer_name, lecturer_status, date_join, lecturer_email, contact_no
             FROM Lecturer
@@ -110,6 +115,7 @@ exports.fetchOwnUser = async (req, res) => {
           return res.json({ message: 'No lecturer found!' });
         }
 
+        // fetch program
         const [programName] = await pool.execute(
             `SELECT program_name
             FROM Program
@@ -124,7 +130,9 @@ exports.fetchOwnUser = async (req, res) => {
         res.json({ user: lecturerInfo, programName: programName , successfully:true});
     }
 
+    // if user own is hop
     if (role === 'hop') {
+        // fetch hop info
         const [hopInfo] = await pool.execute(
             `SELECT hop_name, hop_status, date_join, hop_email, contact_no
             FROM HOP
@@ -136,6 +144,7 @@ exports.fetchOwnUser = async (req, res) => {
           return res.json({ message: 'No hop found!' });
         }
 
+        // fetch program
         const [programName] = await pool.execute(
             `SELECT program_name
             FROM Program

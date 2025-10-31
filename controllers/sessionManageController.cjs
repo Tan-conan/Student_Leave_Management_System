@@ -28,9 +28,11 @@ exports.createSession = async (req, res) => {
   try {
     const { sessionName, sessionStartDate, sessionEndDate, sessionLeaveBalance } = req.body;
     const programID = req.user.programId
-    const id = req.user.id
+    const role = req.user.role
 
-    if (id !== 'hop') {
+    console.log('role is ', role)
+
+    if (role !== 'hop') {
       return res.json({ message: 'Warning: You do not have Permission to do this!' });
     }
 
@@ -41,6 +43,12 @@ exports.createSession = async (req, res) => {
 
     if (!sessionName || !sessionStartDate || !sessionEndDate || !programID) {
       return res.json({ message: 'some data is missing!' });
+    }
+
+    const currentDate = new Date().toLocaleDateString('en-ca')
+
+    if (sessionStartDate === currentDate ) {
+      return res.json({ message: 'Unable to start a session today!' });
     }
 
     const [existingSessions] = await pool.execute(
@@ -116,6 +124,8 @@ exports.createSession = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [programID, sessionName, sessionStartDate, sessionEndDate, 'unactivated', sessionLeaveBalance]
     );
+
+    sessionManagement();
 
     res.json({
       message: `Session "${sessionName}" created successfully, it will starts when the time reached.`, successfully:true
@@ -389,6 +399,7 @@ async function sessionManagement() {
 }
 
 sessionManagement();
+
 setInterval(() => {
   console.log('[Timer] Running session management job...');
   sessionManagement();

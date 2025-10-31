@@ -55,22 +55,15 @@ exports.approveLecturer = async (req, res) => {
       console.log('find lecturer email failed, will approve the account directly.')
     }
 
-    await pool.execute(
+    const [result] = await pool.execute(
       `UPDATE Lecturer
       SET lecturer_status = 'active'
       WHERE lecturer_id = ?`,
         [lecturer_id]
     );
 
-    const [rows] = await pool.execute(
-      `SELECT lecturer_status
-        FROM Lecturer
-        WHERE lecturer_id = ?`,
-        [lecturer_id]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'lecturer not found! update failed' });
+    if (result.affectedRows < 0) {
+      return res.status(404).json({ message: 'not found! update failed!' });
     }
 
     res.json({ message: 'lecturer approved succesfully! now the lecturer account will be active.' });

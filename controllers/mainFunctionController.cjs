@@ -42,6 +42,7 @@ exports.sessionChecker = async (req, res) => {
 
     console.log('User programId:', programId);
     console.log('User old sessionId:', oldSessionId);
+    console.log('User current session state:', oldSessionStatus);
 
     let session_id, session_status;
 
@@ -78,7 +79,9 @@ exports.sessionChecker = async (req, res) => {
         session_status = 'ended';
         session_name = 'none;'
       } else {
+        
         ({ session_id, session_status, session_name } = sessionCheck[0]);
+        console.log('user new session state = ', session_status)
       }
     }
 

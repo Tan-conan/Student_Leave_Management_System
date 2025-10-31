@@ -12,10 +12,6 @@ function updateValue(val) {
   emit('update:clickedButtonValue',val);
 }
 
-function forgotPassClicked() {
-  emit('forgotPassClicked');
-}
-
 </script>
 
 <template>
@@ -23,10 +19,6 @@ function forgotPassClicked() {
   <div class="flex gap-30 w-full justify-center">
     <ButtonUI width-class="w-[30%]" word-class="Login" @click="updateValue('Login')"/>
     <ButtonUI width-class="w-[30%]" word-class="Sign Up" @click="updateValue('Sign Up')"/>
-  </div>
-  <div class="flex gap-30 w-full justify-center pt-3">
-    <a href="" class="font-bold text-blue-400 w-[30%] text-center" @click.prevent="forgotPassClicked">Forgot Password?</a>
-    <p class="w-[30%]"></p>
   </div>
 </div>
 

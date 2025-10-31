@@ -69,7 +69,7 @@ exports.createCourse = async (req, res) => {
     const [name] = await pool.execute(
       `SELECT course_name
         FROM Course
-        WHERE program_id = ? AND course_name = ?`,
+        WHERE program_id = ? AND course_name = ? AND course_status = 1`,
         [programID, courseName]
     );
 
@@ -77,12 +77,12 @@ exports.createCourse = async (req, res) => {
       return res.json({ message: `Course with the name ${courseName} has been created before!`, successfully: false });
     }
 
-    //find same code course
+    //find same code course, course id only unique even different program
     const [code] = await pool.execute(
       `SELECT course_code
         FROM Course
-        WHERE program_id = ? AND course_code = ?`,
-        [programID, courseCode]
+        WHERE course_code = ? AND course_status = 1`,
+        [courseCode]
     );
 
     if (code.length !== 0) {
@@ -107,10 +107,14 @@ exports.createCourse = async (req, res) => {
 exports.assignLecturer = async (req, res) => {
   try {
     const { courseName, lecturer_id } = req.body;
-    const { sessionId:session_id, role } = req.user;
+    const { sessionId:session_id, role, sessionStatus } = req.user;
 
     if (role !== 'hop') {
       return res.json({message:'you do not have permission to do this!'})
+    }
+
+    if (sessionStatus !== 'unactivated') {
+      return res.json({message:'Unable to assign lecturers when there is no coming soon session!'})
     }
 
     console.log(courseName, lecturer_id, session_id);
@@ -168,8 +172,17 @@ exports.assignLecturer = async (req, res) => {
 exports.deleteCourse = async (req, res) => {
   try {
     const { courseName } = req.body;
+    const { role, sessionStatus } = req.user
 
-    console.log( courseName );
+    console.log( courseName, sessionStatus );
+
+    if (role !== 'hop') {
+      return res.json({message:'you do not have permission to do this!'})
+    }
+
+    if (sessionStatus === 'activated') {
+      return res.json({message:'Unable to delete course during session!'})
+    }
 
     await pool.execute(
         `UPDATE Course
@@ -189,7 +202,7 @@ exports.deleteCourse = async (req, res) => {
 exports.saveCourse = async (req, res) => {
   try {
     const { courseName, newCourseName, newCourseCode, lecturerId } = req.body;
-    const { sessionId } = req.user;
+    const { sessionId, sessionStatus } = req.user;
 
     console.log( courseName, newCourseName, newCourseCode, lecturerId, sessionId );
 
@@ -205,8 +218,8 @@ exports.saveCourse = async (req, res) => {
       return res.json({message: 'course unfound in database!'})
     }
 
-    // if in a session or going to have a session
-    if (sessionId !== 'none') {
+    // if going to have a session
+    if (sessionStatus === 'unactivated') {
       // find assign state true for this course in this session, set all to false
       await pool.execute(
         `UPDATE CourseAssignment
@@ -225,7 +238,7 @@ exports.saveCourse = async (req, res) => {
     );
 
     // if lecturerId not none means wants to assign for new lecturer, else directly return
-    if (lecturerId !== 'none' && sessionId !== 'none') {
+    if (lecturerId !== 'none' && sessionStatus === 'unactivated') {
       // assign lecturer
       await pool.execute(
         `INSERT into CourseAssignment (course_id, lecturer_id, session_id, assign_status)

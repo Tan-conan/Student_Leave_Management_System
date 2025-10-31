@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, watch, defineProps, defineEmits } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import PendingUserModal from './PendingUserModal.vue';
+import WordsUI from '../UI/WordsUI.vue';
 
 const router = useRouter()
 
@@ -19,6 +20,7 @@ const props = defineProps({
  userName:{type:String, default: ''},
  selectedSession:{type:String, default: ''},
  userType:{type:String, default: ''},
+ sessionLeaveBalance:{type:[Number, String], default: ''},
  sessionList:{type:Array, default: () => []},
  reportList:{type:Array, default: () => []},
 });
@@ -42,9 +44,10 @@ const tableHeads = ref([
     // key better dont have spacing, use _
     {key:'sid' , label:'Student ID'},
     {key:'student_name' , label:'Student Name'},
-    {key:'leave_count' , label:'Leave Count'},
+    {key:'total_leave_days' , label:'Leave Days'},
     {key:'current_leave' , label:'Current Leave'},
     {key:'predicted_leave' , label:'Predicted Leave'},
+    {key:'attendance_rate' , label:'Attendance rate'},
     {key:'email' , label:'Email'},
 ])
 
@@ -108,8 +111,9 @@ watch(searchingValue,(newval) => {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
-        <div class="flex w-[25%]">
+        <div class="flex w-[50%]">
             <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
+            <WordsUI :word-class="'session leave balance: ' + sessionLeaveBalance"/>
         </div>
 
         <div class="flex items-center justify-center gap-2 w-[50%]">

@@ -103,7 +103,8 @@ exports.register = async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
          [student_id, program_id, name, email,contact_no, hashed, leave_balance, date_join, status]
       );
-      return res.json({ message: 'student registered successfully! You may now wait for your account activation to login' , successfully: true});
+      return res.json({ message: 'student registered successfully! You may now wait for your account activation to login' , 
+        successfully: true});
     }
 
     if (role === 'lecturer') {
@@ -115,7 +116,8 @@ exports.register = async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
          [program_id, name, email, contact_no, hashed, date_join, status]
       );
-      return res.json({ message: 'lecturer registered successfully! You may now wait for your account activation to login' ,  successfully: true});
+      return res.json({ message: 'lecturer registered successfully! You may now wait for your account activation to login' ,  
+        successfully: true});
     }
 
     return res.status(400).json({ message: 'unknown role' });
@@ -302,7 +304,8 @@ exports.userlogin = async (req, res) => {
 
     const userInfo = pickUserRow(role, userRow, session_id, session_status);
     const token = jwt.sign(
-      { id: userInfo.id, role: userInfo.role, email: userInfo.email, programId: userInfo.program, sessionId: userInfo.sessionId, sessionStatus: userInfo.sessionStatus },
+      { id: userInfo.id, role: userInfo.role, email: userInfo.email, programId: userInfo.program, 
+        sessionId: userInfo.sessionId, sessionStatus: userInfo.sessionStatus },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES }
     );

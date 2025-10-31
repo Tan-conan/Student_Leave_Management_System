@@ -36,7 +36,7 @@ function keyClicked(val) {
       <thead class="bg-greenSoft text-cream sticky top-0 z-10"> <!--sticky top-0 to make sure thead wont scroll-->
         <tr>
           <th v-for="head in tableHeads" :key="head.key" class="text-center cursor-pointer px-2 py-1"
-           @click="keyClicked(head.key)" :class="{ 'w-[30px]': head.key === 'id' , 'w-[100px]': head.key === 'status' ,
+           @click="keyClicked(head.key)" :class="{ 'w-[40px]': head.key === 'id' , 'w-[100px]': head.key === 'status' ,
             'w-[50px]': head.key === 'leave_count' , 'w-[50px]': head.key === 'leave_days' , 'w-[500px]': head.key === 'email' ,
             'w-[200px]': head.key === 'sid'}">
 

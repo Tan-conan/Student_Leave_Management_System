@@ -218,6 +218,9 @@ async function createCourse() {
     modalType: 'warning',
   }
 
+  newCourseName.value = ''
+  newCourseCode.value = ''
+
   fetchCurrentCourses();
 }
 
@@ -237,11 +240,11 @@ function assignLecModal() {
   }
 
   // assign lecturers when no session available is not allowed
-  if (userSessionStatus.value === 'none' || userSessionStatus.value === 'ended' ) {
+  if (userSessionStatus.value !== 'unactivated' ) {
   confirmationModal.value = {
       visible: true,
       title: 'assign failed',
-      message: 'Unable to assign lecturers when there is no coming soon/ongoing session!',
+      message: 'Unable to assign lecturers when there is no coming soon session!',
       action: null,
       modalType: 'warning',
     }
@@ -294,11 +297,11 @@ function deleteCourseModal() {
   courseMenuModalVisible.value = false;
 
   // only allowed to delete course when no session available and no coming session available
-  if (userSessionStatus.value !== 'none') {
+  if (userSessionStatus.value === 'activated') {
     confirmationModal.value = {
     visible: true,
     title: 'Delete Failed',
-    message: `Unable to delete a course when a session is ongoing or coming soon!`,
+    message: `Unable to delete a course when a session is ongoing!`,
     action: null,
     modalType: 'warning'
   }
@@ -446,9 +449,12 @@ async function fetchCurrentCourses() {
   try {
     const res = await api.post('/courseManage/fetchCurrentCourses')
 
+    if(res.data.message) {console.log(res.data.message)}
+
     if (!res.data.succesfully) {
       courseList.value = []
       assignCoursesList.value = []
+      return;
     }
 
     courseList.value = res.data.courses.map((c) => ({
@@ -490,7 +496,8 @@ async function fetchCurrentLecturers() {
     :modal-message="confirmationModal.message" @confirm="confirmModal"/>
 
     <CourseInformationModal v-model:user-menu-modal-visible="courseMenuModalVisible" v-model:courseName="courseName" :lecturerNameList="assignLecturersListCM"
-     v-model:courseCode="courseCode" v-model:courseLecturer="courseLecturer" @delete="deleteCourseModal" @save="saveCourseModal"/>
+     v-model:courseCode="courseCode" v-model:courseLecturer="courseLecturer" @delete="deleteCourseModal" @save="saveCourseModal"
+     :userSessionStatus="userSessionStatus"/>
 
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
      @update:user-menu-modal-visible="userMenuModalVisible = false"/>

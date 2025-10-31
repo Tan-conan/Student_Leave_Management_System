@@ -55,7 +55,7 @@ async function uploadFiles(leaveId) {
     const res = await api.post('/leaveFileManage/uploadLeaveFiles', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    alert(res.data.message);
+    console.log(res.data.message);
   } catch (err) {
     console.error('Upload failed:', err);
   }
