@@ -33,13 +33,13 @@ const emit = defineEmits([
     <div class="flex w-[100%]">
 
         <div class="flex w-[50%]">
-            <WordsUI word-class="Username"/>
+            <WordsUI word-class="Username" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userName" @update:input-value="val => emit('update:userName', val)" 
             name-of-input="e.g. John" width-class="flex-1"/>
         </div>
 
         <div class="flex w-[50%]">
-            <WordsUI word-class="Email"/>
+            <WordsUI word-class="Email" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userEmail" @update:input-value="val => emit('update:userEmail', val)" 
             name-of-input="e.g. John@gmail.com" width-class="flex-1"/>
         </div>
@@ -49,13 +49,13 @@ const emit = defineEmits([
     <div class="flex w-[100%]">
 
         <div class="flex w-[50%]">
-            <WordsUI word-class="Password"/>
+            <WordsUI word-class="Password" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userPassword" @update:input-value="val => emit('update:userPassword', val)" 
             name-of-input="e.g. 123456John@" width-class="flex-1"/>
         </div>
 
         <div class="flex w-[50%]">
-            <WordsUI word-class="Confirm Password"/>
+            <WordsUI word-class="Confirm Password" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userConfirmPass" @update:input-value="val => emit('update:userConfirmPass', val)" 
             name-of-input="e.g. 123456John@" width-class="flex-1"/>
         </div>
@@ -64,13 +64,13 @@ const emit = defineEmits([
 
     <div class="flex w-[100%]">
         <div class="flex w-[50%]">
-            <WordsUI word-class="Contact No"/>
+            <WordsUI word-class="Contact No" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userContactNum" @update:input-value="val => emit('update:userContactNum', val)" 
             name-of-input="e.g. 6012-345-6789" width-class="flex-1"/>
         </div>
 
         <div v-if="currentRadioValue === 'student'" class="flex w-[50%]">
-            <WordsUI word-class="Student ID"/>
+            <WordsUI word-class="Student ID" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="props.userSID" @update:input-value="val => emit('update:userSID', val)" 
             name-of-input="e.g. ID123456" width-class="flex-1"/>
         </div>
@@ -80,7 +80,7 @@ const emit = defineEmits([
     <div class="flex w-[100%]">
 
         <div class="flex w-[50%] items-center">
-            <WordsUI word-class="Join Date"/>
+            <WordsUI word-class="Join Date" text-color-class="text-wordSubTitle"/>
             <DatePicker type="date" :joinDate="joinDate" @update:date-value="val => emit('update:joinDate', val)" :dateValue="joinDate" width-class="flex-1"/>
         </div>
 

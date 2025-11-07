@@ -47,7 +47,7 @@ const tableHeads = ref([
     {key:'total_leave_days' , label:'Leave Days'},
     {key:'current_leave' , label:'Current Leave'},
     {key:'predicted_leave' , label:'Predicted Leave'},
-    {key:'attendance_rate' , label:'Attendance rate'},
+    {key:'attendance_rate' , label:'Overall Attendance rate'},
     {key:'email' , label:'Email'},
 ])
 
@@ -56,6 +56,12 @@ const tableHeads = ref([
 // managing user filter, search and sort functions at once
 const manageRecords = computed(function(){
     let filteredRecords = props.reportList
+
+    if (searchValue.value) { // if user got search then calculate this  
+        filteredRecords = filteredRecords.filter(function(row){
+          return row.student_name.toLowerCase().includes(searchValue.value.toLowerCase())
+        })
+    }
 
     if (currentSortKey.value) { // if user got sort then calculate this  
         filteredRecords = [...filteredRecords].sort((a,b) => {
@@ -113,7 +119,8 @@ watch(searchingValue,(newval) => {
 
         <div class="flex w-[50%]">
             <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
-            <WordsUI :word-class="'session leave balance: ' + sessionLeaveBalance"/>
+            <WordsUI word-class="session leave balance:" text-color-class="text-wordSubTitle"/>
+            <WordsUI :word-class="sessionLeaveBalance"/>
         </div>
 
         <div class="flex items-center justify-center gap-2 w-[50%]">

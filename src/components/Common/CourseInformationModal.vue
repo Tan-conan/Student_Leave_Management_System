@@ -50,22 +50,22 @@ function saving(){
   <ModalUI name="course information" :visible="userMenuModalVisible" width-class="w-auto" height-class="h-auto">
     <div class="flex gap-2">
         <ModalCloseUI @close-modal="MenuClosing"/>
-        <WordsUI word-class="Course Information"/>
+        <WordsUI word-class="Course Information" text-color-class="text-wordTitle"/>
     </div>
 
     <div class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
         <div class="flex gap-2">
-            <WordsUI word-class="Course Name:"/>
+            <WordsUI word-class="Course Name:" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="`${courseName}`" width-class="w-[500px]" 
              @update:input-value="val => emit('update:courseName',val)"/>
         </div>
         <div class="flex gap-2">
-            <WordsUI word-class="Course Code:"/>
+            <WordsUI word-class="Course Code:" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="`${courseCode}`" width-class="flex-1" 
              @update:input-value="val => emit('update:courseCode',val)"/>
         </div>
         <div class="flex gap-2">
-            <WordsUI word-class="Course Lecturer:"/>
+            <WordsUI word-class="Course Lecturer:" text-color-class="text-wordSubTitle"/>
             <DropdownUI v-if="userSessionStatus === 'unactivated'" :dropdown-value="`${courseLecturer}`" :options="lecturerNameList" width-class="flex-1"
              @update:dropdown-value="val => emit('update:courseLecturer', val)"/>
              <WordsUI v-else :word-class="courseLecturer"/>

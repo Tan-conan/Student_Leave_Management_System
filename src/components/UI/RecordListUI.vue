@@ -29,11 +29,11 @@ function keyClicked(val) {
 </script>
 
 <template>
-  <div :class="['overflow-y-auto border-3 border-greenSoft w-full select-none',heightClass]">
-    <table class="w-full table-fixed border-greenSoft border-2 border-collapse">
+  <div :class="['overflow-y-auto border-3 border-list rounded-2xl w-full select-none my-2 [scrollbar-width:none] bg-cream',heightClass]">
+    <table class="w-full table-fixed border-list border-2 border-collapse">
 
       <!-- table heads -->
-      <thead class="bg-greenSoft text-cream sticky top-0 z-10"> <!--sticky top-0 to make sure thead wont scroll-->
+      <thead class="bg-list text-cream sticky top-0 z-10"> <!--sticky top-0 to make sure thead wont scroll-->
         <tr>
           <th v-for="head in tableHeads" :key="head.key" class="text-center cursor-pointer px-2 py-1"
            @click="keyClicked(head.key)" :class="{ 'w-[40px]': head.key === 'id' , 'w-[100px]': head.key === 'status' ,
@@ -54,7 +54,7 @@ function keyClicked(val) {
 
       <!-- table body -->
       <tbody>
-        <tr v-for="row in leaveRecords" :key="row.id ?? row.sid" class="border border-greenSoft
+        <tr v-for="row in leaveRecords" :key="row.id ?? row.sid" class="border border-list
          hover:bg-ivory h-[50px]" @dblclick="clickOnRow(row)">
 
           <td v-for="head in tableHeads" :key="head.key" class="text-center text-greenSoft font-bold text-2xl px-2 py-1">

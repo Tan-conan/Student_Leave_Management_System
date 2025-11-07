@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS CourseAssignment (
   assign_id      INT AUTO_INCREMENT PRIMARY KEY,
-  course_id      INT NULL,
-  lecturer_id    INT NULL,
-  session_id     INT NULL,
+  course_id      INT NOT NULL,
+  lecturer_id    INT NOT NULL,
+  session_id     INT NOT NULL,
   assign_status  BOOLEAN DEFAULT TRUE,
   created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
 

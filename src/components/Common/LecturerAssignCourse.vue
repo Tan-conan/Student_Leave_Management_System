@@ -17,12 +17,12 @@ const emit = defineEmits(['assignLecturer','update:selectedCourse','update:selec
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 w-[50%] border-r-2 border-greenSoft pr-2">
-    <WordsUI word-class="Course Assignment"/>
+  <div class="flex flex-col gap-2 border-greenSoft pr-2">
+    <div class="small-card"><WordsUI word-class="COURSE ASSIGNMENT" text-color-class="text-cream" word-bold-class="font-black" wordsize-class="text-[35px]" /></div>
     <DropdownUI :options="coursesList" :dropdown-value="selectedCourse" @update:dropdown-value="val => emit('update:selectedCourse',val)"/>
-    <WordsUI word-class="Assign For"/>
+    <WordsUI word-class="Assign For" text-color-class="text-wordSubTitle"/>
     <DropdownUI :options="lecturersList" :dropdown-value="selectedLecturer" @update:dropdown-value="val => emit('update:selectedLecturer',val)"/>
-    <WordsUI word-class="(Course assign will be reseted after semester ends)"/>
+    <div class="caution-card"><WordsUI word-class="(Course assign will be reseted after semester ends)"/></div>
     <div class="flex justify-end">
       <ButtonUI word-class="Assign" width-class="min-w-auto w-[25%]" @update:word-class="emit('assignLecturer')"/>
     </div>

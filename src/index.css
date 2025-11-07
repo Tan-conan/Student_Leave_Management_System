@@ -1,14 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #FFFDF6;
-  --color-greenSoft: #A0C878;
-  --color-ivory: #FAF6E9;
-  --color-greenLight: #B0DB9C;
-  --color-hoverButton:#8FB961;
+
+  --color-cream: #FFFDF6;            
+  --color-ivory: #FAF6E9;            
+  --color-surface: #FFFFFF;          
+  --color-hoverSurface: #F8F6EF;    
+  --color-border: #E5E2D6;           
+
+
+  --color-greenSoft: #A0C878;        
+  --color-greenLight: #BEE5A0;       
+  --color-greenAccent: #D8F3BE;      
+
+  --color-accent: #F5D565;           
+  --color-success: #7BBF60;         
+  --color-error: #E25B45;          
+  --color-info: #62A9D8;             
+
+  --color-topPage: #6d9b3f;
+  --color-defaultButton: #87b954;
+  --color-hoverButton: #8FB961;
   --color-pressedButton: #7FA64B;
+  --color-list: #87b954;
+
+  --color-smallCard: #87b954;
+  --color-cautionCard: #FAF6E9;
+  
+  --color-wordTitle: #6d9b3f;
+  --color-wordSubTitle: #6d9b3f;
+  --color-mainText: #A0C878;         
+
+  --color-textMuted: #A3A39B;        
+  --color-textOnPrimary: #FFFFFF;  
+
+  --color-inputField: #FFFEFB;    
+
+  --color-shadow: rgba(50, 70, 50, 0.08); 
+  --radius: 10px;
 }
 
+@layer components {
+  .big-card {
+    background: var(--color-cream);
+    border: none;
+    box-shadow: 0 6px 18px rgba(50,70,50,0.06);
+    border-radius: var(--radius);
+    margin: 5px; 
+    padding: 10px; 
+  }
 
+  .small-card {
+    background: var(--color-smallCard);
+    border: none;
+    border-radius: var(--radius);
+    margin-bottom: 10px; 
+    padding: 1px; 
+  }
 
-
+  .caution-card {
+    background: var(--color-cautionCard);
+    border: none;
+    border-radius: var(--radius);
+    margin-bottom: 10px; 
+    padding: 1px; 
+  }
+}

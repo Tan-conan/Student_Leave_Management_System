@@ -64,37 +64,37 @@ function updateLeaveReason(val) {
 <div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-5">
     <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRecords"/>
     <div class="flex">
-        <WordsUI word-class="Leave Balance:"/>
+        <WordsUI word-class="Leave Balance:" text-color-class="text-wordSubTitle"/>
         <WordsUI :word-class="userCurrentLeave" width-class="flex-1"/>
     </div>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Request Name"/>
+    <WordsUI word-class="Leave Title" text-color-class="text-wordSubTitle"/>
     <InputUI :input-value="requestName" width-class="flex-1" @update:input-value="val => emit('update:requestName',val)"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Leave Type"/>
-    <DropdownUI :options="leaveTypeArray" :dropdown-value="leaveType" @update:dropdown-value="val => emit('update:leaveType', val)"/>
+    <WordsUI word-class="Leave Type" text-color-class="text-wordSubTitle"/>
+    <DropdownUI :options="leaveTypeArray" width-class="flex-1" :dropdown-value="leaveType" @update:dropdown-value="val => emit('update:leaveType', val)"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Select Leave Date Range"/>
+    <WordsUI word-class="Select Leave Date Range" text-color-class="text-wordSubTitle"/>
     <DatePicker :date-value="selectedDateRange" width-class="flex-1" type="daterange" placeholder="Select date range" @update:date-value="passDate"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Predicted Leave Balance:"/>
+    <WordsUI word-class="Predicted Leave Balance:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="userPredictedLeave"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Valid leave Day:"/>
+    <WordsUI word-class="Valid leave Day:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="requestValidLeaveDay"/>
 </div>
 
-<WordsUI word-class="Reason to leave:"/>
+<WordsUI word-class="Reason to leave:" text-color-class="text-wordSubTitle"/>
 <TextAreaUI :inputValue="leaveReason" :rows="5" :maxLength="500" widthClass="w-[100%] min-h-[240px]" @update:input-value="updateLeaveReason"/>
 
 

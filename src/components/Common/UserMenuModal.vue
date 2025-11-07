@@ -50,13 +50,6 @@ function openPage(val){
         })
         break;
 
-        case 'Enrollment':
-        console.log('user wanna to open Enrollment page')
-        router.push({
-            path:'/StudentCourseEnrollment',
-        })
-        break;
-
         case 'Apply for leave':
         console.log('user wanna to open apply leave record page')
         router.push({
@@ -131,7 +124,6 @@ function openPage(val){
 
     <div v-if="userType === 'student' " class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
         <ButtonUI word-class="My Information" @update:word-class="openPage"/>
-        <ButtonUI word-class="Enrollment" @update:word-class="openPage"/>
         <ButtonUI word-class="Apply for leave" @update:word-class="openPage"/>
         <ButtonUI word-class="My Leave Records" @update:word-class="openPage"/>
 

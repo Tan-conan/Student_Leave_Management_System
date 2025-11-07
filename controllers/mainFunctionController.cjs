@@ -2,7 +2,6 @@ const pool = require('../config/database.cjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || '';
 
-
 // check and update session state in time
 async function sessionManagement() {
   try {

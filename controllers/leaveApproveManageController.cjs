@@ -22,6 +22,10 @@ exports.approveRequest = async (req, res) => {
 
     const currentDate = new Date().toLocaleDateString('en-ca')
 
+    if (role !== 'lecturer' && role !== 'hop') {
+      return res.json({message: 'You do not have permission to do this!'})
+    }
+
     // unable to approve leave when no session
     if (sessionId === 'none') {
       return res.json({message: 'No session available!Unable to approve the leave!'})
@@ -224,7 +228,11 @@ exports.rejectRequest = async (req, res) => {
 
     const currentDate = new Date().toLocaleDateString('en-ca')
 
-    // unable to reject leave when no session
+    if (role !== 'lecturer' && role !== 'hop') {
+      return res.json({message: 'You do not have permission to do this!'})
+    }
+
+    // unable to reject leave when no session.
     if (sessionId === 'none') {
       return res.json({message: 'No session available!Unable to reject the leave!'})
     }
@@ -371,7 +379,7 @@ exports.rejectRequest = async (req, res) => {
       return res.json({message: 'You do not have permission to do this!'})
     }
 
-    return res.json({message:'approved the leave successfully!', successfully:true})
+    return res.json({message:'rejected the leave successfully!', successfully:true})
 
   } catch (err) {
     console.error('DB Error:', err);

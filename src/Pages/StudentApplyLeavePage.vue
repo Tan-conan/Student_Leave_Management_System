@@ -328,7 +328,7 @@ function sendRequestModal() {
   confirmationModal.value = {
     visible: true,
     title: 'Send request',
-    message: 'Are you sure you want to Send this request?',
+    message: 'Are you sure you want to Send this request?\n(sending notification email to lecturers and hop might take some time)',
     action: sendRequest,
     modalType: 'confirmation'
   }

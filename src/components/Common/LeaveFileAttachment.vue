@@ -111,10 +111,14 @@ function deleteFile(id) {
 
 // add file
 function addnewFile() {
+  // Create a hidden file input element
   const input = document.createElement('input');
   input.type = 'file';
+
+  // can selected multiple files
   input.multiple = true;
 
+  // Set up the onChange handler for when files are selected
   input.onchange = (event) => {
     const files = event.target.files;
     for (let i = 0; i < files.length; i++) {
@@ -131,6 +135,7 @@ function addnewFile() {
     emit('update:leaveFiles', localFiles.value);
   };
 
+  // Programmatically trigger the file explorer dialog
   input.click();
 }
 </script>
@@ -139,7 +144,7 @@ function addnewFile() {
   <div class="flex flex-col items-center justify-center w-[100%] gap-2 border-greenSoft">
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
-      <WordsUI word-class="Attached Files"/>
+      <WordsUI word-class="Attached Files" text-color-class="text-wordSubTitle"/>
       <ButtonUI v-if="props.pageType === 'apply'" word-class="Add new file" width-class="w-auto" @update:word-class="addnewFile"/>
     </div>
 

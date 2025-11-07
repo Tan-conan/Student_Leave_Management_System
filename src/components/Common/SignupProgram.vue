@@ -28,7 +28,7 @@ onMounted(async () => {
 
 <template>
 <div class="flex items-center w-[50%] mx-auto px-0 gap-4">
-    <WordsUI word-class="Program"/>
+    <WordsUI word-class="Program" text-color-class="text-wordSubTitle"/>
     <DropdownUI :dropdown-value="dropdownValue" :options="programList" placeholder="Select your program"
     width-class="flex-1" @update:dropdown-value="updateselection"/>
 

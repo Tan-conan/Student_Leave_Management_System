@@ -31,16 +31,16 @@ const titleName = computed( function() {
 </script>
 
 <template>
-<div class="flex items-center w-[100%] mx-auto px-0 justify-between h-[50px] shrink-0 bg-ivory"> 
+<div class="flex items-center w-[100%] mx-auto px-0 justify-between h-[50px] shrink-0 bg-topPage mb-2"> 
   <!--shrink 0 let toppageui height really = h-[50px]-->
-    <div class="flex gap-5">
+    <div class="flex gap-4 mx-4">
         <MenuDot @menu-clicked="handleMenuCLicking"/>
-        <WordsUI :word-class="topPageTitle"/>
+        <WordsUI :word-class="topPageTitle" text-color-class='text-cream'/>
     </div>
 
-    <div class="flex items-center gap-1">
-        <WordsUI :word-class="`welcome! ${titleName}`"/>
-        
+    <div class="flex items-center gap-1 mx-4">
+        <WordsUI :word-class="`welcome! ${titleName}`" text-color-class='text-cream'/>
+
     </div>
 
 </div>

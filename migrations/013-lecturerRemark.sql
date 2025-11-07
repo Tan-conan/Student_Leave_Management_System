@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS LecturerRemark (
   leave_id            INT NULL,
   lecturer_id         INT NULL,
   remark_content      TEXT NOT NULL,
-  remark_date         DATE NULL,
+  remark_date         DATE NOT NULL,
   created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_remark_leave_lecturer

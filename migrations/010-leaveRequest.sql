@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS LeaveRequest (
   leave_id INT AUTO_INCREMENT PRIMARY KEY,
   student_id      VARCHAR(20) NOT NULL,
   session_id      INT NOT NULL,
-  leave_name      VARCHAR(20) NOT NULL,
+  leave_name      VARCHAR(255) NOT NULL,
   leave_date      DATE NOT NULL,
   end_date        DATE NOT NULL,
   leave_days      INT NOT NULL,          

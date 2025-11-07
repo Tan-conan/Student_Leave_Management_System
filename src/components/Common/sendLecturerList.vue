@@ -58,7 +58,7 @@ function rowClickHandle(val) {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
-        <WordsUI word-class="sended Lecturers"/>
+        <WordsUI word-class="sended Lecturers" text-color-class="text-wordSubTitle"/>
 
     </div>
 

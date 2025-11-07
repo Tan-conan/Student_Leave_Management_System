@@ -26,16 +26,16 @@ function MenuClosing(){
   <ModalUI name="Holiday information" :visible="userMenuModalVisible" width-class="w-auto" height-class="h-auto">
     <div class="flex gap-2">
         <ModalCloseUI @close-modal="MenuClosing"/>
-        <WordsUI word-class="Holiday Information"/>
+        <WordsUI word-class="Holiday Information" text-color-class="text-wordTitle"/>
     </div>
 
     <div class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
         <div class="flex gap-2">
-            <WordsUI word-class="Holiday Name:"/>
+            <WordsUI word-class="Holiday Name:" text-color-class="text-wordSubTitle"/>
             <InputUI :input-value="`${holidayName}`" width-class="flex-1" @update:input-value="val => emit('update:holidayName', val)"/>
         </div>
         <div class="flex gap-2">
-            <WordsUI word-class="holiday Date Range"/>
+            <WordsUI word-class="holiday Date Range" text-color-class="text-wordSubTitle"/>
             <DatePicker :date-value="selectedDateRange" width-class="flex-1" type="daterange" 
              placeholder="Select date range" @update:date-value="val => emit('update:selectedDateRange', val)"/>
         </div>

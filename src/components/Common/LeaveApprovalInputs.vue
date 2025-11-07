@@ -41,58 +41,69 @@ function updateLeaveReason(val) {
 </script>
 
 <template>
+
 <div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-5">
     <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRequests"/>
 </div>
 
-<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Student Name:"/>
+<!-- section one -->
+<div class="big-card">
+        <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="Student Name:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="studentName"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Request Name:"/>
+    <WordsUI word-class="Request Name:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="requestName"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Leave Type:"/>
+    <WordsUI word-class="Leave Type:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="leaveType"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Leave Status:"/>
+    <WordsUI word-class="Leave Status:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="leaveStatus"/>
 </div>
+    </div>
 
-<div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="From"/>
+<!-- section two -->
+ <div class="big-card">
+        <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
+    <WordsUI word-class="From" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="startDate"/>
-    <WordsUI word-class="to"/>
+    <WordsUI word-class="to" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="endDate"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Submission Date:"/>
+    <WordsUI word-class="Submission Date:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="submissionDate"/>
 </div>
 
-<div class="flex">
-    <WordsUI word-class="Student Current Leave Balance:"/>
+    </div>
+
+<!-- section three -->
+ <div class="big-card">
+        <div class="flex">
+    <WordsUI word-class="Student Current Leave Balance:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="userCurrentLeave" width-class="flex-1"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Student Predicted Leave Balance:"/>
+    <WordsUI word-class="Student Predicted Leave Balance:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="userPredictedLeave"/>
 </div>
 
 <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
-    <WordsUI word-class="Valid leave Day:"/>
+    <WordsUI word-class="Valid leave Day:" text-color-class="text-wordSubTitle"/>
     <WordsUI :word-class="requestValidLeaveDay"/>
 </div>
+    </div>
 
-<WordsUI word-class="Reason to leave:"/>
+<WordsUI word-class="Reason to leave:" text-color-class="text-wordSubTitle"/>
 <TextAreaUI :inputValue="leaveReason" :rows="5" :maxLength="500" widthClass="w-[100%] min-h-[240px]" 
 @update:input-value="updateLeaveReason" :disabled="true"/>
 

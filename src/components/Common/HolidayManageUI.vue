@@ -69,31 +69,33 @@ function passDate(val) {
 
 <template>
   <div class="flex flex-col gap-2 w-[50%] h-full">
-    <WordsUI word-class="Holiday List"/>
-    <div v-if="holidayList.length === 0" class="flex items-center justify-center w-full h-full border-greenSoft border-2 bg-ivory">
+    <div v-if="holidayList.length === 0" class="flex items-center justify-center px-4 w-full h-full border-greenSoft border-2 bg-ivory">
         <WordsUI v-if="userSessionStatus === 'activated' || userSessionStatus === 'unactivated'" word-class="currently no holiday in this session"/>
         <WordsUI v-else word-class="currently no session available for this program"/>
     </div>
     <RecordListUI v-else :table-heads="tableHeads" :leave-records="holidayList" v-model:current-sort-key="currentSortKey"
      v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>
 
-    <WordsUI word-class="Add a New Holiday"/>
+     <div class="big-card flex-1">
+        <div class="small-card"><WordsUI word-class="ADD A NEW HOLIDAY" text-color-class="text-cream" word-bold-class="font-black" wordsize-class="text-[35px]" /></div>
     <div class="flex gap-2">
-        <WordsUI word-class="Holiday Name:"/>
+        <WordsUI word-class="Holiday Name:" text-color-class="text-wordSubTitle"/>
         <InputUI width-class="flex-1" :input-value="newHolidayName" @update:input-value="val => emit('update:newHolidayName',val)"/>
     </div>
     <div class="flex gap-2 items-center">
-        <WordsUI word-class="Date range :"/>
+        <WordsUI word-class="Date range :" text-color-class="text-wordSubTitle"/>
         <DatePicker :date-value="newHolidayDate" width-class="flex-1" type="daterange" placeholder="Select date range" @update:date-value="passDate"/>
     </div>
     <div class="flex flex-col">
-        <WordsUI word-class="Caution:"/>
-        <WordsUI word-class="once new Session starts unable to delete holidays until the end of session!"/>
+        <WordsUI word-class="Caution:" text-color-class="text-wordTitle"/>
+        <div class="caution-card"><WordsUI word-class="once new Session starts unable to delete holidays until the end of session!"/></div>
     </div>
 
     <div class="flex justify-end">
-        <ButtonUI word-class="Add Holiday" width-class="min-w-auto w-[25%]" @update:word-class="emit('addHoliday')"/>
+        <ButtonUI word-class="Add Holiday" width-class="min-w-auto w-[40%]" @update:word-class="emit('addHoliday')"/>
     </div>
+    </div>
+
   </div>
 
 </template>

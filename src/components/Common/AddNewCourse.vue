@@ -14,14 +14,14 @@ const emit = defineEmits(['createCourse','update:newCourseName','update:newCours
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 w-[50%] h-full border-r-2 border-greenSoft pr-2">
-    <WordsUI word-class="Add New Course"/>
+  <div class="flex flex-col gap-2 h-full border-greenSoft pr-2">
+    <div class="small-card"><WordsUI word-class="ADD NEW COURSE" text-color-class="text-cream" word-bold-class="font-black" wordsize-class="text-[35px]" /></div>
     <div class="flex gap-2">
-        <WordsUI word-class="Course Name:"/>
+        <WordsUI word-class="Course Name:" text-color-class="text-wordSubTitle"/>
         <InputUI width-class="flex-1" :input-value="newCourseName" @update:input-value="val => emit('update:newCourseName',val)"/>
     </div>
     <div class="flex gap-2">
-        <WordsUI word-class="Course Code :"/>
+        <WordsUI word-class="Course Code :" text-color-class="text-wordSubTitle"/>
         <InputUI width-class="flex-1" :input-value="newCourseCode" @update:input-value="val => emit('update:newCourseCode',val)"/>
     </div>
     <div class="flex-1"></div>

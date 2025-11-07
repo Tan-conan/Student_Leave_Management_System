@@ -18,7 +18,7 @@ const emit = defineEmits(['update:userName','update:userPassword']);
   <InputUI :input-value="props.userName" 
     @update:input-value="val => emit('update:userName', val)" name-of-placeholder="Email" width-class="w-[80%]"/>
   <InputUI :input-value="props.userPassword"
-    @update:input-value="val => emit('update:userPassword', val)" name-of-placeholder="Password" width-class="w-[80%]"/>
+    @update:input-value="val => emit('update:userPassword', val)" name-of-placeholder="Password" width-class="w-[80%]" type="password"/>
 
 
 </div>

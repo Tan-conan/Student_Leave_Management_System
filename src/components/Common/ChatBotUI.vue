@@ -101,8 +101,8 @@ watch(messages, () => scrollToBottom())
   <div class="flex flex-col h-full border-2 rounded-2xl overflow-hidden bg-cream border-greenSoft">
 
     <!-- Header -->
-    <div class="bg-ivory ">
-        <WordsUI word-class="Chat"/>
+    <div class="bg-list ">
+      <WordsUI word-class="CHAT" text-color-class="text-cream"/>
     </div>
 
     <!-- chat section -->
@@ -113,7 +113,7 @@ watch(messages, () => scrollToBottom())
 
       <div class="max-w-[70%] p-3 rounded-2xl shadow-md bg-ivory text-greenSoft">
         
-        <div class="text-[20px] font-bold mb-1">{{ msg.name }}</div>
+        <div class="text-[20px] font-bold mb-1 text-wordSubTitle">{{ msg.name }}</div>
 
         <div class="whitespace-pre-wrap font-semibold text-[20px] break-words">{{ msg.content }}</div>
 

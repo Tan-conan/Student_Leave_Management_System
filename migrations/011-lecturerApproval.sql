@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS LecturerApproval (
   lec_approve_id      INT AUTO_INCREMENT PRIMARY KEY,
-  leave_id            INT NULL,
-  lecturer_id         INT NULL,
+  leave_id            INT NOT NULL,
+  lecturer_id         INT NOT NULL,
   approve_status      VARCHAR(20) DEFAULT 'pending',
-  approve_date        DATE NULL,
+  approve_date        DATE NOT NULL,
   created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_approve_leave

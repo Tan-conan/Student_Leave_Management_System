@@ -116,7 +116,6 @@ async function registerUser() {
       role: currentRadioValue.value,
       date_join: formattedDate,
       status: 'pending',
-      leave_balance: 10
     })
 
     if(!res.data.successfully) {
@@ -162,17 +161,23 @@ async function registerUser() {
   <div class="flex flex-col gap-5">
     <p></p>
     <ButtonUI word-class="Back to Login" width-class="w-[20%]" @click="backToLogin"/>
-    <SignUpInputs v-model:user-name="userName" v-model:user-email="userEmail" v-model:user-password="userPassword"
+    <div class="flex flex-col big-card">
+      <SignUpInputs v-model:user-name="userName" v-model:user-email="userEmail" v-model:user-password="userPassword"
                   v-model:user-confirm-pass="userConfirmPass" v-model:user-s-i-d="userSID" 
                   v-model:user-contact-num="userContactNum" :currentRadioValue="currentRadioValue"
-                  v-model:joinDate="joinDate"
-    />
-    <div class="flex gap-2">
+                  v-model:joinDate="joinDate"/>
+    <div class="flex gap-2 ">
       <SignupProgram v-model:dropdown-value="dropdownValue"/>
       <SignupCheckboxes v-model:current-radio-value="currentRadioValue"/>
     </div>
-    <WordsUI word-class="Warning: Please make sure your email for registeration is actually exist!"/>
-    <WordsUI word-class="(Your Account will send to HOP to approve for activation)"/>
+    </div>
+    <div class="flex flex-col big-card">
+      <WordsUI word-class="Warning:" text-color-class="text-wordSubTitle"/>
+      <div class="flex flex-col caution-card">
+        <WordsUI word-class="Please make sure your email for registeration is actually exist!"/>
+        <WordsUI word-class="(Your Account will send to HOP to approve for activation)"/>
+      </div>
+    </div>
     <ButtonUI word-class="Sign Up" width-class="w-[20%]" @update:word-class="registerUser"/>
   </div>
 </template>

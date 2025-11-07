@@ -60,7 +60,7 @@ exports.register = async (req, res) => {
   console.log('req.body:', req.body);
 
   try {
-    const { role, name, email, password, student_id, program_name, date_join, contact_no, leave_balance, status } = req.body;
+    const { role, name, email, password, student_id, program_name, date_join, contact_no, status } = req.body;
     if (role === '' || !name || !email || !password || !date_join || program_name === '') {
       return res.json({ message: 'Please fill in all the forms!' });
     }
@@ -98,10 +98,10 @@ exports.register = async (req, res) => {
       if (exists.length) return res.json({ message: 'This email or student id has been registered!' });
 
       await pool.query(
-        `INSERT INTO Student (student_id, program_id, student_name, student_email, contact_no, password_hash, leave_balance,
+        `INSERT INTO Student (student_id, program_id, student_name, student_email, contact_no, password_hash,
          date_join, student_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-         [student_id, program_id, name, email,contact_no, hashed, leave_balance, date_join, status]
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         [student_id, program_id, name, email, contact_no, hashed, date_join, status]
       );
       return res.json({ message: 'student registered successfully! You may now wait for your account activation to login' , 
         successfully: true});
@@ -144,10 +144,10 @@ exports.userVerify = async (req, res) => {
 
     const userRow = rows[0];
     const userStatus = role === 'student' ? userRow.student_status : role === 'lecturer' ? userRow.lecturer_status : userRow.hop_status;
-    if (userStatus === 'pending') return res.status(403).json({ message: 'Your account has not been activated yet, unable to login!' });
+    if (userStatus === 'pending') return res.json({ message: 'Your account has not been activated yet, unable to login!' });
 
     const ok = await bcrypt.compare(password, userRow.password_hash);
-    if (!ok) return res.status(401).json({ message: 'user not exist or password incorrect!' });
+    if (!ok) return res.json({ message: 'user not exist or password incorrect!' });
 
     // Invalidate previous OTPs for this user (prevent multiple valid OTPs)
     if (role === 'student') {
@@ -160,6 +160,8 @@ exports.userVerify = async (req, res) => {
 
     // Generate + save OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     let insertResult;
@@ -167,19 +169,19 @@ exports.userVerify = async (req, res) => {
       insertResult = await pool.execute(
         `INSERT INTO otpStudent (student_id, otp_code, otp_status, expires_at, created_at)
          VALUES (?, ?, TRUE, ?, NOW())`,
-        [userRow.student_id, otp, expiresAt]
+        [userRow.student_id, hashedOTP, expiresAt]
       );
     } else if (role === 'lecturer') {
       insertResult = await pool.execute(
         `INSERT INTO otpLecturer (lecturer_id, otp_code, otp_status, expires_at, created_at)
          VALUES (?, ?, TRUE, ?, NOW())`,
-        [userRow.lecturer_id, otp, expiresAt]
+        [userRow.lecturer_id, hashedOTP, expiresAt]
       );
     } else {
       insertResult = await pool.execute(
         `INSERT INTO otpHOP (hop_id, otp_code, otp_status, expires_at, created_at)
          VALUES (?, ?, TRUE, ?, NOW())`,
-        [userRow.hop_id, otp, expiresAt]
+        [userRow.hop_id, hashedOTP, expiresAt]
       );
     }
 
@@ -227,43 +229,51 @@ exports.otpCodeCheck = async (req, res) => {
     if (role === 'student') {
       const [otpRows] = await pool.execute(
         `SELECT otp_stu_id, otp_code, expires_at FROM otpStudent
-         WHERE student_id = ? AND otp_status = TRUE AND expires_at > NOW() AND otp_code = ?
+         WHERE student_id = ? AND otp_status = TRUE AND expires_at > NOW()
          ORDER BY created_at DESC LIMIT 1`,
-        [userRow.student_id, otp]
+        [userRow.student_id]
       );
-      if (!otpRows.length) return res.json({ message: 'verification failed, wrong OTP or OTP not exist/expired!' });
+      if (!otpRows.length) return res.json({ message: 'No valid OTP found!' });
+      
+      // Compare the plain OTP with stored hash
+      const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
+      if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
       const otpId = otpRows[0].otp_stu_id;
-      const [updateRes] = await pool.execute(`UPDATE otpStudent SET otp_status = FALSE WHERE otp_stu_id = ?`, [otpId]);
-      // updateRes.affectedRows should be >0
-      if (!updateRes || updateRes.affectedRows === 0) return res.status(500).json({ message: 'falsing otp failed!' });
+      await pool.execute(`UPDATE otpStudent SET otp_status = FALSE WHERE otp_stu_id = ?`, [otpId]);
 
     } else if (role === 'lecturer') {
       const [otpRows] = await pool.execute(
         `SELECT otp_lec_id, otp_code, expires_at FROM otpLecturer
-         WHERE lecturer_id = ? AND otp_status = TRUE AND expires_at > NOW() AND otp_code = ?
+         WHERE lecturer_id = ? AND otp_status = TRUE AND expires_at > NOW()
          ORDER BY created_at DESC LIMIT 1`,
-        [userRow.lecturer_id, otp]
+        [userRow.lecturer_id]
       );
-      if (!otpRows.length) return res.json({ message: 'verification failed, wrong OTP or OTP not exist/expired!' });
+      if (!otpRows.length) return res.json({ message: 'No valid OTP found!' });
+
+      // Compare the plain OTP with stored hash
+      const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
+      if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
       const otpId = otpRows[0].otp_lec_id;
-      const [updateRes] = await pool.execute(`UPDATE otpLecturer SET otp_status = FALSE WHERE otp_lec_id = ?`, [otpId]);
-      if (!updateRes || updateRes.affectedRows === 0) return res.status(500).json({ message: 'falsing otp failed!' });
+      await pool.execute(`UPDATE otpLecturer SET otp_status = FALSE WHERE otp_lec_id = ?`, [otpId]);
 
     } else {
       // hop
       const [otpRows] = await pool.execute(
         `SELECT otp_hop_id, otp_code, expires_at FROM otpHOP
-         WHERE hop_id = ? AND otp_status = TRUE AND expires_at > NOW() AND otp_code = ?
+         WHERE hop_id = ? AND otp_status = TRUE AND expires_at > NOW()
          ORDER BY created_at DESC LIMIT 1`,
-        [userRow.hop_id, otp]
+        [userRow.hop_id]
       );
-      if (!otpRows.length) return res.json({ message: 'verification failed, wrong OTP or OTP not exist/expired!' });
+      if (!otpRows.length) return res.json({ message: 'No valid OTP found!' });
+
+      // Compare the plain OTP with stored hash
+      const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
+      if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
       const otpId = otpRows[0].otp_hop_id;
-      const [updateRes] = await pool.execute(`UPDATE otpHOP SET otp_status = FALSE WHERE otp_hop_id = ?`, [otpId]);
-      if (!updateRes || updateRes.affectedRows === 0) return res.status(500).json({ message: 'falsing otp failed!' });
+      await pool.execute(`UPDATE otpHOP SET otp_status = FALSE WHERE otp_hop_id = ?`, [otpId]);
     }
 
     return res.json({ message: 'verification complete, proceed to log in', successfully: true });

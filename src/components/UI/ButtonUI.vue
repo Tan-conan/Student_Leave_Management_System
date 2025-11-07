@@ -16,7 +16,7 @@ function updateValue(e){
 
 <template>
 
-<button :class="['h-[50px] text-[30px] font-bold px-2 text-cream bg-greenSoft rounded-xl active:bg-pressedButton hover:bg-hoverButton', widthClass]"
+<button :class="['h-[50px] text-[30px] font-bold px-2 text-cream bg-defaultButton rounded-xl active:bg-pressedButton hover:bg-hoverButton', widthClass]"
 @click = "updateValue">
     {{wordClass}}
 </button>

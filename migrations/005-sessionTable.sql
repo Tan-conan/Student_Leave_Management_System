@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS Session (
   session_id       INT AUTO_INCREMENT PRIMARY KEY,
-  program_id       VARCHAR(20) NULL,
+  program_id       VARCHAR(20) NOT NULL,
   session_name     VARCHAR(255) NOT NULL,
-  starting_date    DATE NoT NULL,
+  starting_date    DATE NOT NULL,
   ending_date      DATE NOT NULL,
   session_status   VARCHAR(20) DEFAULT 'unactivated',
   leave_balance    INT NOT NULL,

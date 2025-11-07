@@ -244,7 +244,7 @@ function assignLecModal() {
   confirmationModal.value = {
       visible: true,
       title: 'assign failed',
-      message: 'Unable to assign lecturers when there is no coming soon session!',
+      message: 'Unable to assign lecturers when the session is ended or ongoing!',
       action: null,
       modalType: 'warning',
     }
@@ -510,10 +510,14 @@ async function fetchCurrentLecturers() {
      v-model:courseMenuModalVisible="courseMenuModalVisible"/>
 
     <div class="flex gap-2 h-full">
+      <div class="big-card flex-1 w-[50%]">
         <AddNewCourse @create-course="CreateCourseModal" v-model:newCourseName="newCourseName"
         v-model:newCourseCode="newCourseCode"/>
+      </div>
+      <div class="big-card flex-1 w-[50%]">
         <LecturerAssignCourse @assign-lecturer="assignLecModal" v-model:selectedCourse="selectedCourse"
         v-model:selectedLecturer="selectedLecturer" :lecturers-list="assignLecturersList" :courses-list="assignCoursesList"/>
+      </div>
     </div>
 
   </div>

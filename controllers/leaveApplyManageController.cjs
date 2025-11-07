@@ -1,4 +1,5 @@
 const pool = require('../config/database.cjs');
+const sendEmail = require("../utils/email.cjs");
 
 // check student leave date range is valid or not
 exports.dateRangeValidation = async (req, res) => {
@@ -6,8 +7,6 @@ exports.dateRangeValidation = async (req, res) => {
     const { sessionId, sessionStatus } = req.user;
     const { startDate, endDate } = req.body
     console.log( sessionId, sessionStatus, startDate, endDate )
-
-    let invalidDay = null;
 
     // fecthing session date range
     const [sessionResult] = await pool.execute(
@@ -18,7 +17,8 @@ exports.dateRangeValidation = async (req, res) => {
     );
 
     if (sessionResult.length === 0) {
-      return res.json({ message: 'Session not found or session is not ongoing!', invalidDay:'error: Session not found or session is not ongoing'});
+      return res.json({ message: 'Session not found or session is not ongoing!', 
+        invalidDay:'error: Session not found or session is not ongoing'});
     }
 
     const sessionStart = new Date(sessionResult[0].starting_date);
@@ -32,7 +32,6 @@ exports.dateRangeValidation = async (req, res) => {
         message: `Leave range (${startDate} to ${endDate}) is outside the session period 
         (${sessionResult[0].starting_date} to ${sessionResult[0].ending_date})!`, invalidDay:'error: leave date out of session'});
     }
-
     console.log('date checked, valid leave range, now performing valid leave day calculation....')
 
     // calculate date in selected range
@@ -68,12 +67,7 @@ exports.dateRangeValidation = async (req, res) => {
     // final valid leave days
     const validLeaveDay = workingDays.length;
 
-    res.json({
-      message: 'Effective leave days calculated successfully',
-      successfully: true,
-      validLeaveDay
-    });
-
+    res.json({ message: 'Effective leave days calculated successfully', successfully: true, validLeaveDay });
 
   } catch (err) {
     console.error('DB Error:', err);
@@ -83,9 +77,9 @@ exports.dateRangeValidation = async (req, res) => {
 
 exports.sendRequest = async (req, res) => {
   try {
-    const { sessionId, sessionStatus, id } = req.user;
+    const { sessionId, sessionStatus, id, programId } = req.user;
     const { requestName, requestStartDate, requestEndDate, requestType, leaveReason, 
-      requestValidLeaveDay, selectedCourses, leaveFiles } = req.body
+      requestValidLeaveDay, selectedCourses } = req.body
     console.log(requestName, requestStartDate, requestEndDate, requestType, leaveReason)
 
     // unable to send request when no session ongoing
@@ -103,6 +97,10 @@ exports.sendRequest = async (req, res) => {
 
     const currentDate = new Date().toLocaleDateString('en-CA')
 
+    if (new Date(requestStartDate) < new Date(currentDate)) {
+      return res.json({message: 'Leave start date cannot be earlier than today!'});
+    }
+
     // check the leave date range collides with others or not
     const [overlapCheck] = await pool.execute(
       `SELECT leave_id, leave_name, leave_date, end_date
@@ -115,7 +113,8 @@ exports.sendRequest = async (req, res) => {
 
     if (overlapCheck.length > 0) {
       return res.json({
-        message: `The requested leave overlaps with an existing leave (${overlapCheck[0].leave_name}: ${overlapCheck[0].leave_date} to ${overlapCheck[0].end_date}!).`,
+        message: `The requested leave overlaps with an existing leave (${overlapCheck[0].leave_name}: 
+        ${new Date(overlapCheck[0].leave_date).toLocaleDateString('en-CA')} to ${new Date(overlapCheck[0].end_date).toLocaleDateString('en-CA')}).`,
       });
     }
 
@@ -123,14 +122,15 @@ exports.sendRequest = async (req, res) => {
       `INSERT INTO leaveRequest (student_id, session_id, leave_name, leave_date, end_date, leave_days, leave_type, 
       leave_reason, leave_status, submission_date)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, sessionId, requestName, requestStartDate, requestEndDate, requestValidLeaveDay, requestType, leaveReason, 'pending', currentDate ]
+      [id, sessionId, requestName, requestStartDate, requestEndDate, requestValidLeaveDay, requestType, leaveReason,
+        'pending', currentDate]
     )
 
     if (result.affectedRows === 0) {
       return res.json({message: 'insert failed or no rows matched'});
     } 
 
-    // decrease the value of predicted leave balance, negative leave balance is allowed to lt lecturers 
+    // decrease the value of predicted leave balance, negative leave balance is allowed to let lecturers 
     // and hop view the over request of leave of the student
     const [leaveResult] = await pool.execute(
       `UPDATE SessionLeave
@@ -140,7 +140,21 @@ exports.sendRequest = async (req, res) => {
     )
 
     if (leaveResult.affectedRows === 0) {
-      return res.json({message: 'minusing predicted balance failed or no rows matched'});
+      return res.json({message: 'missing predicted balance failed or no rows matched'});
+    }
+
+    // find student name
+    const [fetchStudentName] = await pool.execute(
+      `SELECT student_name
+       FROM Student
+       WHERE student_id = ?`,
+      [id]
+    );
+
+    let studentName = ''
+
+    if (fetchStudentName.length > 0) {
+      studentName = fetchStudentName[0].student_name
     }
 
     // adding lecturer approve rows for the leave
@@ -153,9 +167,50 @@ exports.sendRequest = async (req, res) => {
          VALUES (?, ?, ?)`,
         [result.insertId, lec.id, 'pending'] //result.insertId is id mysql auto creates for leave_id
       );
+
+      // find lecturer email
+      const [lecturerEmail] = await pool.execute( // same lecturer id on same leave request will directly skip due to unique key
+        `SELECT lecturer_email, lecturer_name FROM Lecturer WHERE lecturer_id = ?`,
+        [lec.id]
+      );
+
+      if (lecturerEmail.length > 0) {
+        // send notification email to lecturer
+        const html = `
+        <h3>New student leave request</h3>
+        <p>Dear Lecturer ${lecturerEmail[0].lecturer_name},</p>
+        <p>A new request <b> ${requestName} </b> from student <b> ${studentName} </b> has been send to the Havabreak.</p>
+        <p>You may log in HavaBreak to look for the new leave request.</p>
+        `;
+
+        await sendEmail(lecturerEmail[0].lecturer_email, "New student leave request", html);
+
+        console.log('email send to ' + lecturerEmail[0].lecturer_email + '.')
+      }
     }
 
-    return res.json({message: 'saved successfully', successfully:true, leaveId: result.insertId})
+    // find hop email
+    const [hopEmail] = await pool.execute( // same lecturer id on same leave request will directly skip due to unique key
+      `SELECT hop_email, hop_name 
+      FROM Hop
+      WHERE program_id = ?`,
+      [programId]
+    );
+
+    if (hopEmail.length > 0) {
+      // send notification email to hop
+      const html = `
+      <h3>New student leave request</h3>
+      <p>Dear Head of Program ${hopEmail[0].hop_name},</p>
+      <p>A new request <b> ${requestName} </b> from student <b> ${studentName} </b> has been send to the Havabreak.</p>
+      <p>You may log in HavaBreak to look for the new leave request.</p>
+      `; 
+      await sendEmail(hopEmail[0].hop_email, "New student leave request", html);
+
+      console.log('email send to ' + hopEmail[0].hop_email + '.')
+    }
+
+    return res.json({message: 'Submitted successfully', successfully:true, leaveId: result.insertId})
 
   } catch (err) {
     console.error('DB Error:', err);

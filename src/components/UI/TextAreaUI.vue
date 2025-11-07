@@ -21,7 +21,7 @@ function onInput(e){
 <template>
 
 <textarea :class="[
-    'border focus:outline-none border-greenSoft resize-none bg-ivory rounded-xl',
+    'border focus:outline-none border-greenSoft resize-none bg-inputField rounded-xl',
     'placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft',
      widthClass]" 
 :placeholder="nameOfPlaceholder" :value="inputValue" :rows="rows" :maxlength="maxLength" @input="onInput" :disabled="props.disabled">

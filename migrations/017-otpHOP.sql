@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS otpHOP (
   otp_hop_id      INT AUTO_INCREMENT PRIMARY KEY,
   hop_id          INT NULL,
-  otp_code        VARCHAR(10) NOT NULL,
+  otp_code        VARCHAR(255) NOT NULL,
   otp_status      BOOLEAN DEFAULT TRUE,
   expires_at      DATETIME NOT NULL,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,

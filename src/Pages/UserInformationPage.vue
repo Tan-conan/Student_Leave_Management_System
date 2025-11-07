@@ -44,9 +44,14 @@ const targetNum = ref('')
 const targetDateJoined = ref(null)
 const targetSessionName = ref('')
 const targetStatus = ref('')
-// student only
-const leaveBalance = ref('')
 
+// student only
+const currentLeaveBalance = ref('')
+const predictedLeaveBalance = ref('')
+const sessionLeaveBalance = ref('')
+
+// lecturer only
+const assignedClass = ref('')
 
 // user token verifier
 async function verifyToken() {
@@ -194,6 +199,7 @@ async function fecthLecturerInfo() {
   targetDateJoined.value = new Date(res.data.lecturer[0].date_join).getTime();;
   targetStatus.value = res.data.lecturer[0].lecturer_status
   targetProgramName.value = res.data.programName[0].program_name
+  assignedClass.value = res.data.assignedCourse
 }
 
 async function fetchStudentInfo() {
@@ -222,7 +228,9 @@ async function fetchStudentInfo() {
   targetDateJoined.value = new Date(res.data.students[0].date_join).getTime();;
   targetStatus.value = res.data.students[0].student_status
   targetProgramName.value = res.data.programName[0].program_name
-
+  currentLeaveBalance.value = res.data.currentLeave
+  predictedLeaveBalance.value = res.data.predictedLeave
+  sessionLeaveBalance.value = res.data.sessionLeave
 }
 
 async function fetchOwnInfo() {
@@ -251,12 +259,16 @@ async function fetchOwnInfo() {
     targetName.value = res.data.user[0].student_name
     targetEmail.value = res.data.user[0].student_email
     targetStatus.value = res.data.user[0].student_status
+    currentLeaveBalance.value = res.data.currentLeave
+    predictedLeaveBalance.value = res.data.predictedLeave
+    sessionLeaveBalance.value = res.data.sessionLeave
   }
 
   if (viewerType.value === 'lecturer') {
     targetName.value = res.data.user[0].lecturer_name
     targetEmail.value = res.data.user[0].lecturer_email
     targetStatus.value = res.data.user[0].lecturer_status
+    assignedClass.value = res.data.assignedCourse
   }
 
   if (viewerType.value === 'hop') {
@@ -329,8 +341,6 @@ async function saveUserInfo() {
     userId = studentId.value;
   }
 
-  console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', targetStatus.value)
-
   const res = await api.post('/userManage/saveUserInfo', {
     userId: userId,
     userRole: targetRole.value,
@@ -374,17 +384,11 @@ async function saveUserInfo() {
     <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="viewerName" v-model:user-type="viewerType"
      @menu-clicked="userMenuModalVisible = true"/>
 
-    <MyInformationInputs v-model:viewerType="viewerType" 
-    :target-role="targetRole"
-    v-model:targetName="targetName"
-    v-model:targetRole="targetRole"
-    :targetProgramName="targetProgramName"
-    v-model:targetEmail="targetEmail"
-    v-model:targetNum="targetNum"
-    v-model:targetDateJoined="targetDateJoined"
-    :targetSessionName="targetSessionName"
-    v-model:targetStatus="targetStatus"
-    v-model:leaveBalance="leaveBalance"/>
+      <MyInformationInputs v-model:viewerType="viewerType" :target-role="targetRole" v-model:targetName="targetName" 
+      v-model:targetRole="targetRole" :targetProgramName="targetProgramName" v-model:targetEmail="targetEmail" 
+      v-model:targetNum="targetNum" v-model:targetDateJoined="targetDateJoined" :targetSessionName="targetSessionName" 
+      v-model:targetStatus="targetStatus" :currentLeaveBalance="currentLeaveBalance" :predictedLeaveBalance="predictedLeaveBalance" 
+      :sessionLeaveBalance="sessionLeaveBalance" :assignedClass="assignedClass"/>
 
     <ButtonUI v-if="viewerType === 'hop'" word-class="Save" width-class="w-[20%]" @click="opensaveUserModal"/>
     

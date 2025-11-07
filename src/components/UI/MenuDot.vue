@@ -13,7 +13,7 @@ function openMenu(e){
 
 <template>
 
-<a class="flex items-center h-[50px] text-[10px] font-bold px-2 text-greenSoft w-auto hover:underline" href="#" @click="openMenu">
+<a class="flex items-center h-[50px] text-[10px] font-bold px-2 text-cream w-auto hover:underline" href="#" @click="openMenu">
   &#11044;
   &#11044;
   &#11044;

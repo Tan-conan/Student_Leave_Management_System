@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS Course (
   course_id       INT AUTO_INCREMENT PRIMARY KEY,
-  program_id      VARCHAR(20) NULL,
+  program_id      VARCHAR(20) NOT NULL,
   course_code     VARCHAR(255) NOT NULL,
   course_name     VARCHAR(255) NOT NULL,
   course_status   tinyint(1) DEFAULT '1',

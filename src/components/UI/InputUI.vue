@@ -2,7 +2,7 @@
 import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
-    inputValue:{type:String, default:''},
+    inputValue:{type:[String, Number], default:''},
     nameOfPlaceholder:{type:String, default:''},
     disabled:{type:Boolean, default:false},
     widthClass:{type:String, default:'w-full'}
@@ -19,10 +19,9 @@ function onInput(e){
 <template>
 
 <input :class="[
-    'border focus:outline-none border-greenSoft bg-ivory rounded-xl h-[50px]',
-    ' placeholder-greenLight font-bold px-4 text-greenSoft',
+    'border focus:outline-none border-greenSoft bg-inputField rounded-xl h-[45px]',
+    ' placeholder-greenLight font-bold px-4 text-greenSoft !text-[20px]',
      widthClass]" 
-:placeholder="nameOfPlaceholder" :value="inputValue" @input="onInput" :disabled="disabled"
-style="font-size:20px !important; line-height:1.2 !important"> <!--prevent naiveUI from changing inputUI text font size-->
+:placeholder="nameOfPlaceholder" :value="inputValue" @input="onInput" :disabled="disabled"> 
 
 </template>

@@ -50,26 +50,18 @@ exports.fetchLeaveReport = async (req, res) => {
     // fetch student info
     const [reportRows] = await pool.execute(`
       SELECT 
-        sl.student_id, 
-        st.student_name, 
-        st.student_email,
-        sl.current_leave, 
-        sl.predicted_leave,
+        sl.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave,
         IFNULL(SUM(l.leave_days), 0) AS total_leave_days
       FROM SessionLeave sl
       JOIN Student st 
-        ON sl.student_id = st.student_id
+      ON sl.student_id = st.student_id
       LEFT JOIN LeaveRequest l 
         ON sl.student_id = l.student_id 
         AND sl.session_id = l.session_id 
         AND l.leave_status = 'final approved'
       WHERE sl.session_id = ?
       GROUP BY 
-        sl.student_id, 
-        st.student_name, 
-        st.student_email, 
-        sl.current_leave, 
-        sl.predicted_leave
+        sl.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave
       ORDER BY st.student_name ASC`,
       [session_id]
     );
@@ -77,21 +69,32 @@ exports.fetchLeaveReport = async (req, res) => {
     // calculate attendance rate
     const reportWithAttendance = reportRows.map(row => {
       const attendanceRate =
-        totalSessionDays > 0
-          ? (((totalSessionDays - row.total_leave_days) / totalSessionDays) * 100).toFixed(2)
-          : 0;
+        totalSessionDays > 0 ? (((totalSessionDays - row.total_leave_days) / totalSessionDays) * 100).toFixed(2) : 0;
       return {
         ...row,
-        total_session_days: totalSessionDays,
         attendance_rate: `${attendanceRate}%`
       };
     });
 
-    console.log('session days:', totalSessionDays)
-    return res.json({
-      total_session_days: totalSessionDays,
-      reportRows: reportWithAttendance
-    });
+    let sessionLeaveDays = 'none';
+
+    // fetch session leave balance
+    const [sessionLeave] = await pool.execute(`
+      SELECT leave_balance
+      FROM Session
+      WHERE session_id = ?`,
+      [session_id]
+    );
+
+    // if no session found, set to 'none'
+    if (sessionLeave.length === 0) {
+      sessionLeaveDays = 'none';
+    } else {
+      sessionLeaveDays = sessionLeave[0].leave_balance;
+    }
+
+    console.log('session balance:', sessionLeaveDays)
+    return res.json({ reportRows: reportWithAttendance, sessionLeaveDays });
 
 
   } catch (err) {

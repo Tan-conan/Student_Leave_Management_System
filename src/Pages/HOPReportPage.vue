@@ -66,7 +66,7 @@ async function fetchLeaveReport() {
         attendance_rate: row.attendance_rate,
         email: row.student_email
       }));
-      sessionLeaveBalance.value = res.data.total_session_days
+      sessionLeaveBalance.value = res.data.sessionLeaveDays
       console.log(sessionLeaveBalance.value)
     }
 

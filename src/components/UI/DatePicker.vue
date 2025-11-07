@@ -14,10 +14,30 @@ const emit = defineEmits(['update:dateValue'])
 function updateDate(val) {
     emit('update:dateValue', val)
 }
-
 </script>
 
 <template>
-  <n-date-picker :type="type" :value="props.dateValue" :placeholder="placeholder" :clearable="true"
-    @update:value="updateDate" :class="[widthClass]"/>
+  <div :class="['datepicker-wrap', widthClass]">
+    <n-date-picker :type="type" :value="props.dateValue" :placeholder="placeholder" :clearable="true" @update:value="updateDate"/>
+  </div>
 </template>
+
+<style scoped>
+.datepicker-wrap {
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.datepicker-wrap :deep(input),
+.datepicker-wrap :deep(.n-input__input) {
+  color: var(--color-greenSoft) !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.datepicker-wrap :deep(.n-input),
+.datepicker-wrap :deep(.n-input-wrapper) {
+  background: var(--color-inputField) !important;
+}
+
+</style>

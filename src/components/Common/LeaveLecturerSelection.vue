@@ -66,7 +66,7 @@ function rowClickHandle(val) {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
-        <WordsUI :word-class="userType === 'student' ? 'Send to...' : 'received lecturers' "/>
+        <WordsUI :word-class="userType === 'student' ? 'Send to...' : 'received lecturers' " text-color-class="text-wordSubTitle"/>
 
     </div>
 

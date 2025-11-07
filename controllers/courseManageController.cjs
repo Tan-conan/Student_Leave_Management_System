@@ -123,7 +123,7 @@ exports.assignLecturer = async (req, res) => {
     const [courseId] = await pool.execute(
       `SELECT course_id
         FROM Course
-        WHERE  course_name = ?`,
+        WHERE course_name = ? AND course_status = TRUE`,
         [courseName]
     );
 
@@ -210,7 +210,7 @@ exports.saveCourse = async (req, res) => {
     const [courseId] = await pool.execute(
         `SELECT course_id
         FROM Course
-        WHERE course_name = ?`,
+        WHERE course_name = ? AND course_status = TRUE`,
         [courseName]
     )
 

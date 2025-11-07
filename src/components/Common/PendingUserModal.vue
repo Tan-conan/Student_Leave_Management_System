@@ -39,24 +39,24 @@ function rejecting(){
   <ModalUI name="forgot password" :visible="userMenuModalVisible" width-class="w-auto" height-class="h-auto">
     <div class="flex gap-2">
         <ModalCloseUI @close-modal="MenuClosing"/>
-        <WordsUI :word-class="`${pendingType} Menu`"/>
+        <WordsUI :word-class="`${pendingType} Menu`" text-color-class="text-wordSubTitle"/>
     </div>
 
     <div class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
         <div class="flex gap-2">
-            <WordsUI word-class="Name:"/>
+            <WordsUI word-class="Name:" text-color-class="text-wordSubTitle"/>
             <WordsUI :word-class="`${userName}`"/>
         </div>
         <div v-if="pendingType === 'Student' "class="flex gap-2">
-            <WordsUI word-class="Student ID:"/>
+            <WordsUI word-class="Student ID:" text-color-class="text-wordSubTitle"/>
             <WordsUI :word-class="`${userSID}`"/>
         </div>
         <div class="flex gap-2">
-            <WordsUI word-class="Email:"/>
+            <WordsUI word-class="Email:" text-color-class="text-wordSubTitle"/>
             <WordsUI :word-class="`${userEmail}`"/>
         </div>
         <div class="flex gap-2">
-            <WordsUI word-class="Contact No:"/>
+            <WordsUI word-class="Contact No:" text-color-class="text-wordSubTitle"/>
             <WordsUI :word-class="`${contactNo}`"/>
         </div>
         
@@ -69,7 +69,7 @@ function rejecting(){
         <ButtonUI word-class="Reject" @update:word-class="rejecting"/>
     </div>
 
-    <WordsUI word-class="Remark:"/>
+    <WordsUI word-class="Remark:" text-color-class="text-wordSubTitle"/>
 
     <TextAreaUI :inputValue="remark" :rows="5" :maxLength="300" widthClass="w-[100%]" @update:input-value="val => emit('update:remark',val)"/>
 

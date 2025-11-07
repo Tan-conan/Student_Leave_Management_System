@@ -36,7 +36,7 @@ const tableHeads = ref([
     // key better dont have spacing, use _
     {key:'start_date' , label:'Start Date'},
     {key:'end_date' , label:'End Date'},
-    {key:'name' , label:'Name'},
+    {key:'name' , label:'Title'},
     {key:'type' , label:'Type'},
     {key:'status' , label:'Status'},
     {key:'sent_date' , label:'Sent Date'},
