@@ -23,6 +23,7 @@ function onInput(e){
 <textarea :class="[
     'border focus:outline-none border-greenSoft resize-none bg-inputField rounded-xl',
     'placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft',
+     'focus:ring-emerald-500 focus:ring-2 transition duration-300 hover:border-3',
      widthClass]" 
 :placeholder="nameOfPlaceholder" :value="inputValue" :rows="rows" :maxlength="maxLength" @input="onInput" :disabled="props.disabled">
 </textarea>

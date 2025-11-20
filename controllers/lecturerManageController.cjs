@@ -1,11 +1,11 @@
 const pool = require('../config/database.cjs');
 const sendEmail = require("../utils/email.cjs");
 
-
 exports.fetchLecturersList = async (req, res) => {
   try {
     const { programId:programID } = req.user;
 
+    // fetch lecturer info for lecturer list
     const [rows] = await pool.execute(
       `SELECT lecturer_id, lecturer_name, lecturer_status, date_join, lecturer_email, contact_no
         FROM Lecturer
@@ -15,7 +15,8 @@ exports.fetchLecturersList = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'No active/unactivated session found' });
+      console.log('no lecturer found, return immedietaly')
+      return;
     }
 
     res.json({ lecturers: rows });
@@ -28,7 +29,12 @@ exports.fetchLecturersList = async (req, res) => {
 exports.approveLecturer = async (req, res) => {
   try {
     const { lecturer_id, remark } = req.body;
+    const {role} = req.user;
     console.log( lecturer_id, remark)
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     // find lecturer email
     const [lecturer] = await pool.execute( 
@@ -55,6 +61,7 @@ exports.approveLecturer = async (req, res) => {
       console.log('find lecturer email failed, will approve the account directly.')
     }
 
+    // update lecturer status
     const [result] = await pool.execute(
       `UPDATE Lecturer
       SET lecturer_status = 'active'
@@ -76,7 +83,12 @@ exports.approveLecturer = async (req, res) => {
 exports.deleteLecturer = async (req, res) => {
   try {
     const { lecturer_id, remark } = req.body;
+    const {role} = req.user;
     console.log( lecturer_id, remark)
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     // find lecturer email
     const [lecturer] = await pool.execute( 
@@ -110,6 +122,7 @@ exports.deleteLecturer = async (req, res) => {
       [lecturer_id]
     );
 
+    // check lecturer again make sure deleted
     const [rows] = await pool.execute(
       `SELECT lecturer_id
         FROM Lecturer

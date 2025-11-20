@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api/axios.js'
 import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
@@ -54,9 +54,9 @@ const endDate = ref('')
 const leaveFiles = ref([])
 
 // check lecturer/hop approved/rejected this leave before or not
-const viewerDicision = ref('')
+const viewerDicision = ref('') // lecturer/hop approved or not
 
-const newMessage = ref('')
+const newMessage = ref('') // new remark
 
 // remarkmessage
 const remarkMessages = ref([])
@@ -65,6 +65,7 @@ async function fetchLeaveFiles() {
   try {
     const res = await api.get(`/leaveFileManage/getLeaveFiles/${leave_id.value}`);
     if (res.data.files) {
+      //file list
       leaveFiles.value = res.data.files.map((f, index) => ({
         id: f.file_id,  // use file id as unique id
         file_name: f.file_name,
@@ -75,7 +76,6 @@ async function fetchLeaveFiles() {
     console.error("Error fetching leave files:", err);
   }
 }
-
 
 // send remark
 function sendRemarkModal() {
@@ -129,6 +129,7 @@ async function fetchRemark() {
       leave_id: leave_id.value
     })
 
+    // if got remark
     if (res.data.remarkRows.length > 0) {
       remarkMessages.value = res.data.remarkRows.map((r) => ({
         id: r.remark_id,

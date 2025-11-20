@@ -3,8 +3,13 @@ const sendEmail = require("../utils/email.cjs");
 
 exports.fetchStudentsList = async (req, res) => {
   try {
-    const { programId:programID } = req.user;
+    const { programId:programID, role } = req.user;
 
+    if (role !== 'hop') {
+      return res.status(401).json({message: 'student fetch failed, not hop role'})
+    }
+
+    // fetch student info
     const [rows] = await pool.execute(
       `SELECT student_id, student_name, student_status, date_join, student_email, contact_no
         FROM Student
@@ -14,7 +19,8 @@ exports.fetchStudentsList = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'No active/unactivated session found' });
+      console.log('no student found, return immedietaly')
+      return;
     }
 
     res.json({ students: rows });
@@ -27,6 +33,12 @@ exports.fetchStudentsList = async (req, res) => {
 exports.approveStudent = async (req, res) => {
   try {
     const { student_id, remark } = req.body;
+    const {role} = req.user;
+    console.log( student_id, remark)
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     // find student email
     const [student] = await pool.execute( 
@@ -53,22 +65,16 @@ exports.approveStudent = async (req, res) => {
       console.log('find student email failed, will approve the account directly.')
     }
 
-    await pool.execute(
+    // update student status into active
+    const [updateresult] = await pool.execute(
       `UPDATE Student
       SET student_status = 'active'
       WHERE student_id = ?`,
         [student_id]
     );
 
-    const [rows] = await pool.execute(
-      `SELECT student_status
-        FROM Student
-        WHERE student_id = ?`,
-        [student_id]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'student not found! update failed' });
+    if (updateresult.affectedRows === 0) {
+      return res.status(404).json({ message: 'update failed!' });
     }
 
     res.json({ message: 'student approved succesfully! now the student account will be active.' });
@@ -81,6 +87,11 @@ exports.approveStudent = async (req, res) => {
 exports.deleteStudent = async (req, res) => {
   try {
     const { student_id, remark } = req.body;
+    const {role} = req.user;
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     // find student email
     const [student] = await pool.execute( 
@@ -107,21 +118,14 @@ exports.deleteStudent = async (req, res) => {
       console.log('find student email failed, will reject the account directly.')
     }
 
-    // delete lecturer
-    await pool.execute(
+    // delete student
+    const [deleteResult]  = await pool.execute(
       `DELETE FROM Student
        WHERE student_id = ?`,
       [student_id]
     );
 
-    const [rows] = await pool.execute(
-      `SELECT student_id
-        FROM Student
-        WHERE student_id = ?`,
-        [student_id]
-    );
-
-    if (rows.length === 0) {
+    if (deleteResult.affectedRows > 0) {
       return res.json({ message: 'Student rejected successfully! Now the account will be deleted' });
     } else {
         return res.json({ message: 'Student rejected failed!' });

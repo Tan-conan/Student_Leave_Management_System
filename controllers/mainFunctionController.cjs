@@ -47,6 +47,7 @@ exports.sessionChecker = async (req, res) => {
 
     // if now user no session
     if (oldSessionId === 'none') {
+      // check activated/unactivated session availability again
       const [sessionRow] = await pool.execute(
         `SELECT session_id, session_status, session_name
          FROM Session
@@ -55,6 +56,7 @@ exports.sessionChecker = async (req, res) => {
         [programId]
       );
 
+      // if still no result
       if (sessionRow.length === 0) {
         session_id = 'none';
         session_status = 'none';
@@ -64,7 +66,7 @@ exports.sessionChecker = async (req, res) => {
       }
 
     } else {
-      // got session, check status again
+      // got session, check current session status again
       const [sessionCheck] = await pool.execute(
         `SELECT session_id, session_status, session_name
          FROM Session
@@ -73,12 +75,13 @@ exports.sessionChecker = async (req, res) => {
         [oldSessionId]
       );
 
+      // if session ends
       if (sessionCheck.length === 0) {
         session_id = 'none';
         session_status = 'ended';
         session_name = 'none;'
       } else {
-        
+        // update session status
         ({ session_id, session_status, session_name } = sessionCheck[0]);
         console.log('user new session state = ', session_status)
       }
@@ -97,8 +100,10 @@ exports.sessionChecker = async (req, res) => {
         sessionStatus: session_status
       };
 
+      // generate a new jwt token
       const newToken = jwt.sign(newPayload, JWT_SECRET, { expiresIn: '5h' });
 
+      // return to frontend
       return res.json({ 
         updated: true,
         message: 'Session state updated, new token issued',
@@ -120,7 +125,6 @@ exports.sessionChecker = async (req, res) => {
 
   } catch (err) {
     console.error('Session check error:', err.message);
-
     if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Invalid or expired token' });
     }

@@ -42,7 +42,7 @@ exports.dateRangeValidation = async (req, res) => {
 
     // remove saturday and sunday
     let workingDays = allDates.filter(d => {
-      const day = d.getDay();
+      const day = d.getDay(); // getday automatically return 0-6 for sun-sat
       return day !== 0 && day !== 6;
     });
 
@@ -75,12 +75,17 @@ exports.dateRangeValidation = async (req, res) => {
   }
 }
 
+// send leave request
 exports.sendRequest = async (req, res) => {
   try {
-    const { sessionId, sessionStatus, id, programId } = req.user;
+    const { sessionId, sessionStatus, id, programId, role } = req.user;
     const { requestName, requestStartDate, requestEndDate, requestType, leaveReason, 
       requestValidLeaveDay, selectedCourses } = req.body
     console.log(requestName, requestStartDate, requestEndDate, requestType, leaveReason)
+
+    if (role !== 'student') {
+      return res.json({message:'you do not have permission to do this!'})
+    }
 
     // unable to send request when no session ongoing
     if (sessionStatus !== 'activated') {
@@ -118,6 +123,7 @@ exports.sendRequest = async (req, res) => {
       });
     }
 
+    // insert leave request
     const [result] = await pool.execute(
       `INSERT INTO leaveRequest (student_id, session_id, leave_name, leave_date, end_date, leave_days, leave_type, 
       leave_reason, leave_status, submission_date)
@@ -143,7 +149,7 @@ exports.sendRequest = async (req, res) => {
       return res.json({message: 'missing predicted balance failed or no rows matched'});
     }
 
-    // find student name
+    // find student name for email use
     const [fetchStudentName] = await pool.execute(
       `SELECT student_name
        FROM Student
@@ -190,7 +196,7 @@ exports.sendRequest = async (req, res) => {
     }
 
     // find hop email
-    const [hopEmail] = await pool.execute( // same lecturer id on same leave request will directly skip due to unique key
+    const [hopEmail] = await pool.execute(
       `SELECT hop_email, hop_name 
       FROM Hop
       WHERE program_id = ?`,
@@ -218,6 +224,7 @@ exports.sendRequest = async (req, res) => {
   }
 }
 
+// find current session range
 exports.findSessionRange = async (req, res) => {
   try {
     const { sessionId, sessionStatus } = req.user;
@@ -227,10 +234,12 @@ exports.findSessionRange = async (req, res) => {
     let sessionEndDate = null;
     let sessionName = null;
 
+    // if no session ongoing, directly return null values
     if (sessionStatus !== 'activated') {
       return res.json({sessionStartDate, sessionEndDate, sessionName});
     }
 
+    // fetch activated session range
     const [sessionResult] = await pool.execute(
       `SELECT starting_date, ending_date, session_name
        FROM Session
@@ -254,6 +263,7 @@ exports.findSessionRange = async (req, res) => {
   }
 }
 
+// check student leave balance
 exports.checkStudentLeaveBalance = async (req, res) => {
   try {
     const { id, sessionId } = req.user;
@@ -279,7 +289,7 @@ exports.checkStudentLeaveBalance = async (req, res) => {
         )
 
         // if no create sessionleave for this student, initialize the leave balance
-        if (leaveRecord.length === 0) {
+        if (leaveRecord.length === 0) { // take leave balance from session table
           const [leave_Balance] = await pool.execute(
             `SELECT leave_balance
             FROM session
@@ -291,7 +301,7 @@ exports.checkStudentLeaveBalance = async (req, res) => {
             return res.json({message: 'session leave balance not found!'});
           }
 
-          const [result] = await pool.execute(
+          const [result] = await pool.execute( // create sessionleave record
             `INSERT INTO sessionLeave (student_id, session_id, current_leave, predicted_leave)
             VALUES (?, ?, ?, ?)`,
             [id, sessionId, leave_Balance[0].leave_balance, leave_Balance[0].leave_balance]
@@ -326,6 +336,7 @@ exports.checkStudentLeaveBalance = async (req, res) => {
   }
 }
 
+// fetch current courses with assigned lecturers
 exports.fetchCurrentCourses = async (req, res) => {
   try {
     const { programId: programID } = req.user;
@@ -345,11 +356,12 @@ exports.fetchCurrentCourses = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.json({ message: 'Currently no courses with assigned lecturers found.', success: false });
+      console.log('No courses with assigned lecturers found.');
+      return 
     }
 
     console.log(rows)
-    return res.json({ courses: rows, success: true });
+    return res.json({ courses: rows, successfully: true });
 
   } catch (err) {
     console.error('DB Error:', err);

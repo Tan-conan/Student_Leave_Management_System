@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 import ButtonUI from '../UI/ButtonUI.vue';
 import ModalUI from '../UI/ModalUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
@@ -24,26 +24,32 @@ function MenuClosing(){
 <template>
 
   <ModalUI name="Holiday information" :visible="userMenuModalVisible" width-class="w-auto" height-class="h-auto">
+    <!--header-->
     <div class="flex gap-2">
         <ModalCloseUI @close-modal="MenuClosing"/>
         <WordsUI word-class="Holiday Information" text-color-class="text-wordTitle"/>
     </div>
 
     <div class="flex  flex-col border-greenSoft border-t-2 border-b-2 gap-2 py-2 ">
-        <div class="flex gap-2">
-            <WordsUI word-class="Holiday Name:" text-color-class="text-wordSubTitle"/>
-            <InputUI :input-value="`${holidayName}`" width-class="flex-1" @update:input-value="val => emit('update:holidayName', val)"/>
-        </div>
-        <div class="flex gap-2">
-            <WordsUI word-class="holiday Date Range" text-color-class="text-wordSubTitle"/>
-            <DatePicker :date-value="selectedDateRange" width-class="flex-1" type="daterange" 
-             placeholder="Select date range" @update:date-value="val => emit('update:selectedDateRange', val)"/>
-        </div>
+
+      <!--holiday name-->
+      <div class="flex gap-2">
+        <WordsUI word-class="Holiday Name:" text-color-class="text-wordSubTitle"/>
+        <InputUI :input-value="`${holidayName}`" width-class="flex-1" @update:input-value="val => emit('update:holidayName', val)"/>
+      </div>
+
+      <!--holiday date range-->
+      <div class="flex gap-2">
+        <WordsUI word-class="holiday Date Range" text-color-class="text-wordSubTitle"/>
+        <DatePicker :date-value="selectedDateRange" width-class="flex-1" type="daterange" 
+          placeholder="Select date range" @update:date-value="val => emit('update:selectedDateRange', val)"/>
+      </div>
         
     </div>
 
     <div class="h-2"></div>
 
+    <!--button-->
     <div class="flex gap-2 justify-end">
         <ButtonUI word-class="Delete" @update:word-class="emit('deleteHoliday')"/>
         <ButtonUI word-class="Save" @update:word-class="emit('saveHoliday')"/>

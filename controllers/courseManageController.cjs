@@ -1,9 +1,15 @@
 const pool = require('../config/database.cjs');
 
+// Fetch current courses along with their assigned lecturers
 exports.fetchCurrentCourses = async (req, res) => {
   try {
-    const { programId:programID } = req.user;
+    const { programId:programID, role } = req.user;
 
+    if (role !== 'hop') {
+      return res.status(401).json({message:'not HOP, directly return none.'})
+    }
+
+    // Fetch courses with their assigned lecturers (if any)
     const [rows] = await pool.execute(
       `SELECT 
         c.course_id, c.course_code, c.course_name,
@@ -17,10 +23,12 @@ exports.fetchCurrentCourses = async (req, res) => {
       [programID]
     );
 
+    // If no courses found, return
     if (rows.length === 0) {
       return res.json({ message: 'Currently no courses found for this program.' });
     }
-
+ 
+    // Fetch all course names for dropdown
     const [coursesName] = await pool.execute(
       `SELECT course_name
        FROM Course
@@ -58,12 +66,17 @@ exports.fetchLecturers = async (req, res) => {
   }
 };
 
+// crwate a new course
 exports.createCourse = async (req, res) => {
   try {
     const { courseName, courseCode } = req.body;
-    const { programId:programID } = req.user;
+    const { programId:programID, role } = req.user;
 
     console.log(programID, courseName, courseCode)
+
+    if (role !== 'hop') {
+      return res.json({message:'you do not have permission to do this!'})
+    }
 
     //find same name course
     const [name] = await pool.execute(
@@ -77,7 +90,7 @@ exports.createCourse = async (req, res) => {
       return res.json({ message: `Course with the name ${courseName} has been created before!`, successfully: false });
     }
 
-    //find same code course, course id only unique even different program
+    //find same code course, course id is unique even different program
     const [code] = await pool.execute(
       `SELECT course_code
         FROM Course
@@ -104,6 +117,7 @@ exports.createCourse = async (req, res) => {
   }
 };
 
+// assign lecturer to course
 exports.assignLecturer = async (req, res) => {
   try {
     const { courseName, lecturer_id } = req.body;
@@ -113,8 +127,9 @@ exports.assignLecturer = async (req, res) => {
       return res.json({message:'you do not have permission to do this!'})
     }
 
-    if (sessionStatus !== 'unactivated') {
-      return res.json({message:'Unable to assign lecturers when there is no coming soon session!'})
+    // only aalow to assign lecturer when there is a session
+    if (sessionStatus !== 'unactivated' && sessionStatus !== 'activated') {
+      return res.json({message:'Unable to assign lecturers when there is no session!'})
     }
 
     console.log(courseName, lecturer_id, session_id);
@@ -169,6 +184,7 @@ exports.assignLecturer = async (req, res) => {
   }
 };
 
+// delete a course
 exports.deleteCourse = async (req, res) => {
   try {
     const { courseName } = req.body;
@@ -180,16 +196,21 @@ exports.deleteCourse = async (req, res) => {
       return res.json({message:'you do not have permission to do this!'})
     }
 
+    // unable to delete course during session
     if (sessionStatus === 'activated') {
       return res.json({message:'Unable to delete course during session!'})
     }
 
-    await pool.execute(
-        `UPDATE Course
-         SET course_status = FALSE
-         WHERE course_name = ?`,
-        [courseName]
-      );
+    deleteResult = await pool.execute(
+      `UPDATE Course
+      SET course_status = FALSE
+      WHERE course_name = ?`,
+      [courseName]
+    );
+
+    if (deleteResult[0].affectedRows === 0) {
+      return res.json({ message: `course "${courseName}" delete failed!` });
+    }
 
     res.json({ message: `course "${courseName}" deleted successfully!` });
 
@@ -199,12 +220,21 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
+// save edited course info
 exports.saveCourse = async (req, res) => {
   try {
     const { courseName, newCourseName, newCourseCode, lecturerId } = req.body;
-    const { sessionId, sessionStatus } = req.user;
+    const { sessionId, sessionStatus, role } = req.user;
 
     console.log( courseName, newCourseName, newCourseCode, lecturerId, sessionId );
+
+    if (role !== 'hop') {
+      return res.json({message:'you do not have permission to do this!'})
+    }
+
+    if (sessionStatus === 'activated') {
+      return res.json({message:'Unable to edit course during session!'})
+    }
 
     // find course id
     const [courseId] = await pool.execute(

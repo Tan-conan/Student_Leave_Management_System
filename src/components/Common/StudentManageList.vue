@@ -5,6 +5,7 @@ import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
 import { ref, computed, watch, defineProps } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
+import WordsUI from '../UI/WordsUI.vue';
 
 const router = useRouter()
 
@@ -120,8 +121,13 @@ watch(searchingValue,(newval) => {
         </div>
     </div>
 
-    <RecordListUI :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
+    <div class="flex flex-col w-full h-full flex-1 min-h-0 overflow-y-auto">   
+        <div v-if="manageRecords.length === 0" class="flex items-center justify-center w-full flex-1 border-greenSoft border-2 bg-ivory">
+        <WordsUI word-class="currently no student available for this program"/>
+        </div>
+        <RecordListUI v-else :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="row => emit('rowClickedHandle',row)"/>
+    </div>
 
 </div>
 

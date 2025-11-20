@@ -2,8 +2,13 @@ const pool = require('../config/database.cjs');
 
 exports.fetchCurrentSession = async (req, res) => {
   try {
-    const { programId } = req.user;
+    const { programId, role } = req.user;
 
+    if (role !== 'hop') {
+      return res.status(401).json({message: 'session fetch failed, not hop role'})
+    }
+
+    // fetch unactivated/activated session
     const [rows] = await pool.execute(
       `SELECT session_id, session_name, starting_date, ending_date, session_status
         FROM Session
@@ -41,16 +46,20 @@ exports.createSession = async (req, res) => {
 
     console.log(informationMessage)
 
+    // ensure no data is missing
     if (!sessionName || !sessionStartDate || !sessionEndDate || !programID) {
       return res.json({ message: 'some data is missing!' });
     }
 
+    // current date for checking
     const currentDate = new Date().toLocaleDateString('en-ca')
 
+    // unable to start a session today
     if (sessionStartDate === currentDate ) {
       return res.json({ message: 'Unable to start a session today!' });
     }
 
+    // fetch session 
     const [existingSessions] = await pool.execute(
       `SELECT session_id, session_name, starting_date, ending_date, session_status
          FROM Session
@@ -58,6 +67,7 @@ exports.createSession = async (req, res) => {
       [programID]
     );
 
+    // find any unactivated/activated session
     const unactivatedSession = existingSessions.find(row => {
       const status = row.session_status
 
@@ -72,6 +82,7 @@ exports.createSession = async (req, res) => {
       });
     }
 
+    // check session name overlay
     for (const row of existingSessions) {
       if (row.session_name === sessionName) {
         return res.json({
@@ -99,7 +110,7 @@ exports.createSession = async (req, res) => {
       console.log('exsiting session end date:' + end)
       
       return newStart <= end && newEnd >= start;
-});
+    });
 
     if (overlap) {
       return res.json({
@@ -119,12 +130,14 @@ exports.createSession = async (req, res) => {
       });
     }
 
+    // insert new session
     await pool.execute(
       `INSERT INTO Session (program_id, session_name, starting_date, ending_date, session_status, leave_balance)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [programID, sessionName, sessionStartDate, sessionEndDate, 'unactivated', sessionLeaveBalance]
     );
 
+    // call for sessionmanagement check all session state
     sessionManagement();
 
     res.json({
@@ -139,8 +152,13 @@ exports.createSession = async (req, res) => {
 
 exports.fetchHolidays = async (req, res) => {
   try {
-    const { sessionId } = req.user;
+    const { sessionId, role } = req.user;
 
+    if (role !== 'hop') {
+      return res.status(401).json({message: 'holiday fetch failed, not hop role'})
+    }
+
+    // fectch session for holiday fetching
     const [rows] = await pool.execute(
       `SELECT session_id, session_name, starting_date, ending_date, session_status
         FROM Session
@@ -152,6 +170,7 @@ exports.fetchHolidays = async (req, res) => {
 
     if(rows.length === 0) return res.json({holidays:[]});
 
+    // fecth holiday
     const [holidays] = await pool.execute(
       `SELECT holiday_id, holiday_name, starting_date, ending_date
         FROM Holiday
@@ -171,9 +190,13 @@ exports.fetchHolidays = async (req, res) => {
 exports.addHoliday = async (req, res) => {
   try {
     const { holidayName, holidayStartDate, holidayEndDate } = req.body;
-    const { programId:programID } = req.user;
+    const { programId:programID, role } = req.user;
 
-    console.log(programID, holidayName, holidayStartDate, holidayEndDate)
+    console.log(programID, holidayName, holidayStartDate, holidayEndDate, role)
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     //find session
     const [rows] = await pool.execute(
@@ -189,6 +212,7 @@ exports.addHoliday = async (req, res) => {
       return res.json({ message: 'You cant add a holiday when no session available!' });
     }
 
+    // get session from first result
     const session = rows[0];
     const sessionID = session.session_id;
 
@@ -241,7 +265,11 @@ exports.addHoliday = async (req, res) => {
 exports.editHoliday = async (req, res) => {
   try {
     const { holidayId, holidayName, holidayStartDate, holidayEndDate} = req.body;
-    const programID = req.user.programId;
+    const { role, programId: programID } = req.user;
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     console.log(programID, holidayId, holidayName, holidayStartDate, holidayEndDate);
 
@@ -330,8 +358,13 @@ exports.editHoliday = async (req, res) => {
 exports.deleteHoliday = async (req, res) => {
   try {
     const { holidayId } = req.body;
+    const { role } = req.user;
 
     console.log('Delete holidayId:', holidayId);
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     if (!holidayId) {
       return res.status(400).json({ message: 'Holiday ID is required!' });
@@ -347,6 +380,7 @@ exports.deleteHoliday = async (req, res) => {
       return res.status(404).json({ message: 'Holiday not found!' });
     }
 
+    // prepare for date checking
     const holidayStartDate = new Date(rows[0].starting_date)
     const today = new Date();
 

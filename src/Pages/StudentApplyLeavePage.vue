@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import api from '../api/axios.js'
 import UserTopPageUI from '../components/Common/UserTopPageUI.vue'
 import UserMenuModal from '../components/Common/UserMenuModal.vue';
@@ -11,7 +11,6 @@ import ButtonUI from '../components/UI/ButtonUI.vue';
 import ChatBotUI from '../components/Common/ChatBotUI.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
 
-const route = useRoute()
 const router = useRouter()
 
 const topPageTitle = ref('Leave Form');
@@ -248,17 +247,17 @@ async function fetchCurrentCourses() {
   try {
     const res = await api.post('/leaveApplyManage/fetchCurrentCourses')
 
-    if (!res.data.succesfully) {
+    if (!res.data.successfully) {
       lecturerCourses.value = []
-    }
-
-    lecturerCourses.value = res.data.courses.map((c) => ({
+    } else {
+      lecturerCourses.value = res.data.courses.map((c) => ({
       id: c.lecturer_id,
       course_code: c.course_code,
       course_name: c.course_name,
       lecturer_name: c.lecturer_name,
       checkbox: false,
     }))
+    }
 
     console.log('Fetched course list:', lecturerCourses.value)
   } catch (err) {
@@ -427,7 +426,7 @@ watch(selectedDateRange, (newVal) => {
     <div class="flex w-full flex-1 min-h-0 items-stretch gap-2 overflow-hidden">
 
       <!--left-->
-      <div class="flex flex-col w-[60%] gap-2 overflow-y-auto min-h-0">
+      <div class="flex flex-col w-[60%] gap-2 overflow-y-auto min-h-0 [scrollbar-width:thin]">
         <StudentApplyleaveInputs v-model:selected-date-range="selectedDateRange" v-model:user-name="userName" 
         v-model:user-type="userType" v-model:request-name="requestName" v-model:leave-reason="leaveReason"
         v-model:leaveType="leaveType" :userCurrentLeave="userCurrentLeave" :userPredictedLeave="userPredictedLeave"

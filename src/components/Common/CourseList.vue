@@ -1,6 +1,5 @@
 <script setup>
 import ButtonUI from '../UI/ButtonUI.vue';
-import DropdownUI from '../UI/DropdownUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
 import { ref, computed, watch, defineProps, defineEmits } from 'vue';
@@ -47,6 +46,7 @@ const manageRecords = computed(function(){
     }
 
     if (currentSortKey.value) { // if user got sort then calculate this  
+        // shallow copy
         filteredRecords = [...filteredRecords].sort((a,b) => {
             let A = a[currentSortKey.value] // get 'a' row specific value
             let B = b[currentSortKey.value] // get 'b' row specific value
@@ -60,10 +60,10 @@ const manageRecords = computed(function(){
             }
 
             if ( A > B ) {
-                return currentSortOrder.value === 'asc' ? 1 : -1
+                return currentSortOrder.value === 'asc' ? 1 : -1 //if 1 a is at back of b, if -1 a is in front of b
             }
             if ( A < B) {
-                return currentSortOrder.value === 'asc' ? -1 : 1
+                return currentSortOrder.value === 'asc' ? -1 : 1 //if 1 a is in front of b, if -1 a is at back of b
             }
             return 0
         })
@@ -103,10 +103,12 @@ watch(searchingValue,(newval) => {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
+        <!--back to login button-->
         <div class="flex w-[30%]">
             <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
         </div>
 
+        <!--search bar-->
         <div class="flex items-center justify-center gap-1 w-[50%]">
 
             <InputUI v-model:input-value="searchingValue" name-of-placeholder="Search by course name" 
@@ -117,9 +119,11 @@ watch(searchingValue,(newval) => {
         </div>
     </div>
 
+    <!--if no record-->
     <div v-if="courseList.length === 0" class="flex items-center justify-center w-full h-85 border-greenSoft border-2 bg-ivory">
         <WordsUI word-class="currently no course available for this program"/>
     </div>
+    <!--table-->
     <RecordListUI v-else :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="h-85"  @row-clicked="rowClickHandle"/>
 

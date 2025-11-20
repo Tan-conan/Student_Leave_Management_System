@@ -1,13 +1,19 @@
 const pool = require('../config/database.cjs');
 
+// for student own only
 exports.fetchOwnStudentLeaveRequest = async (req, res) => {
   try {
-    const { id, sessionId } = req.user; // got student id can directly fetch
+    const { id, sessionId, role } = req.user; // got student id can directly fetch
 
     if (sessionId === 'none'){
       return;
     }
 
+    if (role !== 'student') {
+      return;
+    }
+
+    // fetch student own requests
     const [rows] = await pool.execute(
       `SELECT leave_id, leave_date, end_date, leave_name, leave_type, leave_status, submission_date
         FROM LeaveRequest
@@ -25,6 +31,7 @@ exports.fetchOwnStudentLeaveRequest = async (req, res) => {
   }
 }
 
+// fetch all request from a program
 exports.fetchStudentLeaveRequest = async (req, res) => {
   try {
     const { id, role, programId, sessionId } = req.user;
@@ -33,6 +40,11 @@ exports.fetchStudentLeaveRequest = async (req, res) => {
       return;
     }
 
+    if (role !== 'lecturer' && role !== 'hop') {
+      return;
+    }
+
+    // join lecturerApproval to make sure only fetch request that send to the lecturer
     if (role === 'lecturer') {
       const [rows] = await pool.execute(
       `SELECT lr.leave_id, lr.leave_date, lr.end_date, lr.leave_name, lr.leave_type, lr.leave_status, lr.submission_date

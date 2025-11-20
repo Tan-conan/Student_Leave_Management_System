@@ -123,9 +123,10 @@ async function fetchStudentsList() {
 
     const res = await api.post('/studentManage/fetchStudentsList')
 
-    const data = res.data.students
+    if (res.data.students) {
+      const data = res.data.students
 
-    studentList.value = data.map(item => ({
+      studentList.value = data.map(item => ({
       student_id: item.student_id,
       student_name: item.student_name,
       status: item.student_status,
@@ -133,6 +134,9 @@ async function fetchStudentsList() {
       email: item.student_email,
       contact_no: item.contact_no
     }))
+    } else {
+      studentList.value = []
+    }
 
   } catch (err) {
     console.error(err);

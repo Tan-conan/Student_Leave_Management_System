@@ -5,12 +5,13 @@ exports.sendRemark = async (req, res) => {
     const { id, role } = req.user;
     const { remarkMessage, leave_id } = req.body
 
+    // date of remark
     const currentDate = new Date().toLocaleDateString('en-ca')
 
     console.log( id, role, remarkMessage, leave_id, currentDate )
 
-    if (role === 'lecturer') {
-      const [result] = await pool.execute( // if lecturer sending remark
+    if (role === 'lecturer') { // if lecturer sending remark 
+      const [result] = await pool.execute( // insert lecturer remark row into database
         `INSERT LecturerRemark (leave_id, lecturer_id, remark_content, remark_date )
         VALUES (?, ?, ?, ?)`,
         [leave_id, id, remarkMessage, currentDate]
@@ -19,8 +20,9 @@ exports.sendRemark = async (req, res) => {
       if (result.length === 0) {
         return res.json({message: 'failed to save this remark of lecturer!'})
       }
-    } else if (role === 'hop') {
-      const [result] = await pool.execute( // if lecturer sending remark
+
+    } else if (role === 'hop') { // if hop sending remark
+      const [result] = await pool.execute( // insert hop remark row into database
         `INSERT HOPRemark (leave_id, hop_id, remark_content, remark_date )
         VALUES (?, ?, ?, ?)`,
         [leave_id, id, remarkMessage, currentDate]
@@ -29,7 +31,7 @@ exports.sendRemark = async (req, res) => {
       if (result.length === 0) {
         return res.json({message: 'failed to save this remark of hop!'})
       }
-    } else {
+    } else { // not hop and not lecturer
       return res.json({message: 'You dont have permission to send remark!'})
     }
 
@@ -46,6 +48,7 @@ exports.fetchRemark = async (req, res) => {
 
     console.log( leave_id )
 
+    // fetch both remark of hop and lecturer
     const [remarkRows] = await pool.execute(
       `SELECT 
       CONCAT('l-', l.lec_remark_id) AS remark_id,

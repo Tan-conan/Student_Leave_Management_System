@@ -9,8 +9,10 @@ const props = defineProps({
   widthClass:{type: String, default: 'w-auto'}
 })
 
+// define the event that will send to parent compoenent
 const emit = defineEmits(['update:dateValue'])
 
+// send new date value to parent
 function updateDate(val) {
     emit('update:dateValue', val)
 }
@@ -25,19 +27,20 @@ function updateDate(val) {
 <style scoped>
 .datepicker-wrap {
   border-radius: 8px;
-  overflow: visible;
+  overflow: visible; /* show date picker ui */
 }
 
 .datepicker-wrap :deep(input),
-.datepicker-wrap :deep(.n-input__input) {
+.datepicker-wrap :deep(.n-input__input) { /* force to change input style */
   color: var(--color-greenSoft) !important;
   font-size: 18px !important;
   font-weight: bold !important;
 }
 
 .datepicker-wrap :deep(.n-input),
-.datepicker-wrap :deep(.n-input-wrapper) {
+.datepicker-wrap :deep(.n-input-wrapper) { /* force to change background style */
   background: var(--color-inputField) !important;
+  border-radius: 5px !important;
 }
 
 </style>

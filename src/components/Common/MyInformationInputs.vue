@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 import ButtonUI from '../UI/ButtonUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import { useRouter } from 'vue-router'
@@ -28,7 +28,7 @@ const props = defineProps({
  sessionLeaveBalance:{type:[Number, String], default: 'none'},
 
  // assign class for lecturer
- assignedClass:{type:Array, default: () => []},
+ assignedClass:{type:[Array, String], default: () => []},
 });
 
 const emit = defineEmits([

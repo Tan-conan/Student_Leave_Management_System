@@ -5,7 +5,7 @@ import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
 const props = defineProps({
-  pageType: { type: String, default: 'apply' },
+  pageType: { type: String, default: 'apply' }, // this code handle add file list and file show list, need this
   leaveFiles: { type: Array, default: [] },
 });
 
@@ -19,7 +19,7 @@ watch(
   () => props.leaveFiles,
   (newVal) => {
     localFiles.value = [...newVal];
-  },
+},
   { immediate: true }
 );
 
@@ -60,7 +60,7 @@ const manageFiles = computed(() => {
   return files;
 });
 
-// click row → fetch + blob download (works with verifyToken)
+// click row → fetch + blob download
 async function rowClickHandle(row) {
   if (!row.file_url) return; // return if no url
 
@@ -82,23 +82,23 @@ async function rowClickHandle(row) {
     if (!resp.ok) { // if got error return error message 
       const txt = await resp.text();
       console.error('Download failed', resp.status, txt);
-      alert('Download failed: ' + resp.status + ' — see console');
+      alert('Download failed!');
       return;
     }
 
     const blob = await resp.blob(); // change resp into blob type
-    const url = window.URL.createObjectURL(blob); //change blob into url can visit in browser
+    const url = window.URL.createObjectURL(blob); // create temporilaty url for the file
 
-    const a = document.createElement('a'); // create temporilary <a> to simulate tapping for broswer download the file
-    a.href = url;
-    a.download = row.file_name || 'download';
+    const a = document.createElement('a'); // create temporilary <a> to
+    a.href = url; // give url to a to let it open when click
+    a.download = row.file_name || 'download'; // tell a when clicked force to download the file
     document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url); // clear url
+    a.click(); // simulate clicking
+    a.remove(); // remove a and its stored url to prevent storage leakage
+    window.URL.revokeObjectURL(url); // clear url same above
   } catch (err) {
     console.error('fetch download error', err);
-    alert('Download error: see console');
+    alert('Download error!');
   }
 }
 

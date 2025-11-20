@@ -124,7 +124,7 @@ watch(searchingValue,(newval) => {
 </script>
 
 <template>
-<div class="flex flex-col items-center justify-center w-[100%] gap-2">
+<div class="flex flex-col items-center justify-center w-[100%] h-full">
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 

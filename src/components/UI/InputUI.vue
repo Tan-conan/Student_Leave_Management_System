@@ -21,7 +21,8 @@ function onInput(e){
 <input :class="[
     'border focus:outline-none border-greenSoft bg-inputField rounded-xl h-[45px]',
     ' placeholder-greenLight font-bold px-4 text-greenSoft !text-[20px]',
+    ' focus:ring-emerald-500 focus:ring-2 transition duration-300 hover:border-3',
      widthClass]" 
-:placeholder="nameOfPlaceholder" :value="inputValue" @input="onInput" :disabled="disabled"> 
+:placeholder="nameOfPlaceholder" :value="inputValue" @input="onInput" :disabled="disabled"/>
 
 </template>

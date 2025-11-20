@@ -15,11 +15,13 @@ only final approve will decrease the current leave balance of student
 
 */
 
+// approve leave request
 exports.approveRequest = async (req, res) => {
   try {
     const { leave_id } = req.body;
     const { id, role, sessionId } = req.user;
 
+    // get current date for approvement date
     const currentDate = new Date().toLocaleDateString('en-ca')
 
     if (role !== 'lecturer' && role !== 'hop') {
@@ -31,7 +33,7 @@ exports.approveRequest = async (req, res) => {
       return res.json({message: 'No session available!Unable to approve the leave!'})
     }
 
-    // fetch leave_status from the database for safety
+    // fetch leave_status from the database
     const [requestStatus] = await pool.execute(
       `SELECT leave_status
         FROM LeaveRequest
@@ -48,7 +50,7 @@ exports.approveRequest = async (req, res) => {
     
     if (role === 'lecturer') { // if approver is lecturer
       // check did the lecturer approved/rejected to this leave before
-      const [checking] = await pool.execute(
+      const [checking] = await pool.execute( // fetching existing approvement record of lecturer
         `SELECT lec_approve_id
         FROM LecturerApproval
         WHERE leave_id = ? AND lecturer_id = ? AND approve_status != 'pending'`,
@@ -60,6 +62,7 @@ exports.approveRequest = async (req, res) => {
         return res.json({message: 'You are unable to reapprove/reject a same leave again!'})
       }
 
+      // update lecturer approval record
       const [result] = await pool.execute(
         `UPDATE LecturerApproval
         SET approve_status = 'approved' , approve_date = ?
@@ -71,6 +74,7 @@ exports.approveRequest = async (req, res) => {
         return res.json({message: 'failed to approve this request when approving as lecturer!'})
       }
 
+      // check the current leave status of this request
       if (requestStatus[0].leave_status === 'pending') { // if this request in pending status, make it progressing after approve
         const [result] = await pool.execute(
           `UPDATE LeaveRequest
@@ -138,8 +142,9 @@ exports.approveRequest = async (req, res) => {
         return res.json({message: 'You are unable to reapprove/reject a same leave again!'})
       }
 
-      const [result] = await pool.execute( // if approver is hop
-        `INSERT HopApproval (leave_id, hop_id, approve_status, approve_date )
+      // insert hop approval record
+      const [result] = await pool.execute(
+        `INSERT INTO HopApproval (leave_id, hop_id, approve_status, approve_date )
         VALUES (?, ?, 'approved', ?)`,
         [leave_id, id, currentDate]
       );
@@ -160,7 +165,8 @@ exports.approveRequest = async (req, res) => {
         return res.json({message: 'failed to final approve this request when approving as hop!'})
       }
 
-      // fetch leave days student id and leave name of this leave
+      // fetch leave days student id and leave name of this leave(leave_day and student id for leave balance decrease,
+      //  leave name for email)
       const [leaveInfo] = await pool.execute(
       `SELECT leave_days, student_id, leave_name
         FROM LeaveRequest
@@ -221,11 +227,13 @@ exports.approveRequest = async (req, res) => {
   }
 }
 
+// reject leave request
 exports.rejectRequest = async (req, res) => {
   try {
     const { leave_id } = req.body;
     const { id, role, sessionId } = req.user;
 
+    // get current date for approvement date
     const currentDate = new Date().toLocaleDateString('en-ca')
 
     if (role !== 'lecturer' && role !== 'hop') {
@@ -237,7 +245,7 @@ exports.rejectRequest = async (req, res) => {
       return res.json({message: 'No session available!Unable to reject the leave!'})
     }
 
-    // fetch leave_status from the database for safety
+    // fetch leave_status from the database
     const [requestStatus] = await pool.execute(
       `SELECT leave_status
         FROM LeaveRequest
@@ -266,6 +274,7 @@ exports.rejectRequest = async (req, res) => {
         return res.json({message: 'You are unable to reapprove/reject a same leave again!'})
       }
 
+      // update lecturer approval record to rejected
       const [result] = await pool.execute(
         `UPDATE LecturerApproval
         SET approve_status = 'rejected' , approve_date = ?
@@ -277,18 +286,17 @@ exports.rejectRequest = async (req, res) => {
         return res.json({message: 'failed to reject this request when approving as lecturer!'})
       }
 
-      if (requestStatus[0].leave_status === 'pending') { // this request in pending status, make it rejected after reject
-        const [result] = await pool.execute(
+      // make status rejected after reject
+      const [rejectresult] = await pool.execute(
           `UPDATE LeaveRequest
           SET leave_status = 'lecturer rejected'
           WHERE leave_id = ?`,
           [leave_id]
         );
 
-        if (result.length === 0) {
+        if (rejectresult.length === 0) {
           return res.json({message: 'failed to change status from pending to lecturer rejected!'})
         }
-      }
 
     } else if (role === 'hop') {
       // check did the hop approved/rejected to this leave before
@@ -304,7 +312,8 @@ exports.rejectRequest = async (req, res) => {
         return res.json({message: 'You are unable to reapprove/reject a same leave again!'})
       }
 
-      const [result] = await pool.execute( // if approver is hop
+      // insert hop approval record
+      const [result] = await pool.execute( 
         `INSERT HopApproval (leave_id, hop_id, approve_status, approve_date )
         VALUES (?, ?, 'rejected', ?)`,
         [leave_id, id, currentDate]
@@ -326,7 +335,8 @@ exports.rejectRequest = async (req, res) => {
         return res.json({message: 'failed to final approve this request when approving as hop!'})
       }
 
-      // fetch leave days, student id and leave name of this leave
+      // fetch leave days, student id and leave name of this leave (leave_day and student id for predict leave balance increase,
+      //  leave name for email)
       const [leaveInfo] = await pool.execute(
       `SELECT leave_days, student_id, leave_name
         FROM LeaveRequest
@@ -387,11 +397,13 @@ exports.rejectRequest = async (req, res) => {
   }
 }
 
+// fetch leave request info
 exports.fetchLeaveRequestInfo = async (req, res) => {
   try {
     const { leave_id } = req.body;
     let student_name = null;
 
+    // fetch leave info
     const [rows] = await pool.execute(
       `SELECT leave_date, end_date, leave_name, leave_type, leave_status, submission_date, leave_reason, leave_days
         FROM LeaveRequest
@@ -403,6 +415,7 @@ exports.fetchLeaveRequestInfo = async (req, res) => {
       return res.json({message: 'fetch leave info failed, no leave found!'});
     }
 
+    // fetch student name
     const [studentName] = await pool.execute(
       `SELECT s.student_name
         FROM Student s
@@ -425,10 +438,12 @@ exports.fetchLeaveRequestInfo = async (req, res) => {
   }
 }
 
+// fetch approvement lecturers info
 exports.fetchApprovementLecturers = async (req, res) => {
   try {
     const { leave_id } = req.body;
 
+    // fetch lecturer info
     const [rows] = await pool.execute(
       `SELECT l.lecturer_name, l.lecturer_status, la.approve_status, la.approve_date
       FROM LecturerApproval la
@@ -446,6 +461,7 @@ exports.fetchApprovementLecturers = async (req, res) => {
   }
 }
 
+// fetch approvement hop info to decide to show approve/reject button or not in frontend
 exports.fetchViewerDicision = async (req, res) => {
   try {
     const { leave_id } = req.body;
@@ -453,6 +469,23 @@ exports.fetchViewerDicision = async (req, res) => {
 
     // FALSE means lecturer/hop did not approve/reject the leave, TRUE means lecturer/hop already approve/reject the leave
     let dicision = null;
+
+    const [leaveStatus] = await pool.execute(
+      `SELECT leave_status
+      FROM LeaveRequest
+      WHERE leave_id = ?`,
+        [leave_id]
+    );
+
+    // if cannot find the leave, return
+    if (leaveStatus.length === 0) {
+      console.log('leave not found!')
+      return;
+    } else if (leaveStatus[0].leave_status === 'final approved' || leaveStatus[0].leave_status === 'final rejected') {
+      // if already final approved/rejected, no need to approve/reject again
+      dicision = true
+      return res.json({dicision})
+    }
 
     if (role === 'lecturer' ) {
       // fetch current lecturer has make dicision for this leave or not
@@ -465,7 +498,7 @@ exports.fetchViewerDicision = async (req, res) => {
 
     // cant find any data, return
     if (lecturerApprovement.length === 0) {
-      console.log('cant find apprvement data!')
+      console.log('cant find approvement data!')
       return;
     }
 
@@ -504,6 +537,7 @@ exports.fetchViewerDicision = async (req, res) => {
   }
 }
 
+// check student leave balance for leave approve manage
 exports.checkStudentLeaveBalanceLA = async (req, res) => {
   try {
     const { sessionId } = req.user;

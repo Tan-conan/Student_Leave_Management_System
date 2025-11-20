@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, defineProps } from 'vue';
+import { ref, computed, defineProps } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
@@ -66,14 +66,16 @@ function rowClickHandle(val) {
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
-        <WordsUI :word-class="userType === 'student' ? 'Send to...' : 'received lecturers' " text-color-class="text-wordSubTitle"/>
+        <!--change title based on usertype-->
+        <WordsUI word-class="Send to..."/>
 
     </div>
 
+    <!--lecturer list showing-->
     <RecordListUI :table-heads="tableHeads" :leave-records="manageLecturers" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="h-50"  @row-clicked="rowClickHandle">
 
-    <template #checkbox="{ row, value }">
+    <template #checkbox="{ row }">
         <input type="checkbox" class="scale-150" v-model="row.checkbox" />
     </template>
 

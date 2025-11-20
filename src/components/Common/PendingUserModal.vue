@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 import ButtonUI from '../UI/ButtonUI.vue';
 import ModalUI from '../UI/ModalUI.vue';
 import WordsUI from '../UI/WordsUI.vue';

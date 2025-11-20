@@ -84,12 +84,13 @@ onMounted(async () => {
       console.log('user type is ' + userType.value);
   }
 
+  sessionChecker();
+
   if (userSessionID.value === 'none' && userSessionStatus.value === 'none') {
     userSessionName.value = 'none'
     userSessionStartDate.value = 'none'
     userSessionEndDate.value = 'none'
   } else {
-    sessionChecker();
     currentSession();
     currentHolidays();
   }

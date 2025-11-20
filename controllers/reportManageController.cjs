@@ -2,10 +2,14 @@ const pool = require('../config/database.cjs');
 
 exports.fetchSessionList = async (req, res) => {
   try {
-    const { programId } = req.user
+    const { programId, role } = req.user
+    console.log( programId, role )
 
-    console.log( programId )
+    if (role !== 'hop') {
+      return res.state(401).json({message:'you do not have permission.'});
+    }
 
+    // fetch session name list
     const [existingSessions] = await pool.execute(
       `SELECT session_name
          FROM Session
@@ -25,8 +29,14 @@ exports.fetchSessionList = async (req, res) => {
 exports.fetchLeaveReport = async (req, res) => {
   try {
     const { sessionName } = req.body;
+    const { role } = req.user
+    console.log( sessionName, role )
 
-    // get session id + session date
+    if (role !== 'hop') {
+      return res.state(401).json({message:'you do not have permission.'});
+    }
+
+    // get session id + session date (id for report fetch, date for session day calculation)
     const [fetchSession] = await pool.execute(`
       SELECT session_id, starting_date, ending_date
       FROM Session
@@ -44,25 +54,43 @@ exports.fetchLeaveReport = async (req, res) => {
     const sessionStart = new Date(starting_date);
     const sessionEnd = new Date(ending_date);
     const totalSessionDays = Math.floor(
-      (sessionEnd - sessionStart) / (1000 * 60 * 60 * 24)
-    ) + 1;
+      (sessionEnd - sessionStart) // total micro seconds between end and start
+      / (1000 * 60 * 60 * 24) // convert to days
+    ) + 1; // include starting day
 
-    // fetch student info
+    // fetch student info, use student entity as base because student no apply for leave no session leave entity,
+    // thus no predicted leave and current leave
     const [reportRows] = await pool.execute(`
       SELECT 
-        sl.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave,
-        IFNULL(SUM(l.leave_days), 0) AS total_leave_days
-      FROM SessionLeave sl
-      JOIN Student st 
-      ON sl.student_id = st.student_id
-      LEFT JOIN LeaveRequest l 
-        ON sl.student_id = l.student_id 
-        AND sl.session_id = l.session_id 
-        AND l.leave_status = 'final approved'
-      WHERE sl.session_id = ?
-      GROUP BY 
-        sl.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave
-      ORDER BY st.student_name ASC`,
+      st.student_id, st.student_name, st.student_email,
+      
+      -- check current leave if no use session leave balance
+      COALESCE(sl.current_leave, s.leave_balance) AS current_leave,
+    
+      -- check predicted leave if no use session leave balance
+      COALESCE(sl.predicted_leave, s.leave_balance) AS predicted_leave,
+    
+      -- if no final approved request, set to 0
+      IFNULL(SUM(l.leave_days), 0) AS total_leave_days
+      
+      FROM Student st
+
+      -- join session for session leave balance
+      JOIN Session s ON s.session_id = ?
+    
+      -- join sessionlave for predicted leave and current leave
+      LEFT JOIN SessionLeave sl ON st.student_id = sl.student_id AND sl.session_id = s.session_id
+    
+      -- jon leaverequest for total leave days calculation
+
+      LEFT JOIN LeaveRequest l ON st.student_id = l.student_id AND l.session_id = s.session_id AND l.leave_status = 'final approved'
+
+      WHERE st.program_id = s.program_id AND st.student_status = 'active'
+                    
+      GROUP BY st.student_id, st.student_name, st.student_email, sl.current_leave, sl.predicted_leave, s.leave_balance
+    
+      ORDER BY 
+      st.student_name ASC;`,
       [session_id]
     );
 

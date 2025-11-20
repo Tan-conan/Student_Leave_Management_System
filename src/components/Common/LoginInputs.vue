@@ -1,6 +1,6 @@
 <script setup>
 import InputUI from '../UI/InputUI.vue';
-import { ref, defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   userName:{type:String, default:''},

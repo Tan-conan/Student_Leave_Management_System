@@ -1,7 +1,6 @@
 <script setup>
-import { ref, watch, defineEmits, defineProps } from 'vue'
+import { defineEmits, defineProps } from 'vue'
 import WordsUI from '../UI/WordsUI.vue';
-import InputUI from '../UI/InputUI.vue';
 import ButtonUI from '../UI/ButtonUI.vue';
 import DropdownUI from '../UI/DropdownUI.vue';
 

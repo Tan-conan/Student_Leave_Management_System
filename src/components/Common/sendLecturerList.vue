@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, defineProps } from 'vue';
+import { ref, computed, defineProps } from 'vue';
 import RecordListUI from '../UI/RecordListUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
 
@@ -47,9 +47,6 @@ const manageLecturers = computed(function(){
 
     return filteredRecords
 })
-
-function rowClickHandle(val) {
-}
 
 </script>
 

@@ -9,21 +9,24 @@ const client = new OpenAI({
 
 exports.chatbotReply = async (req, res) => {
   try {
+    // Validate API key
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({ error: "OpenAI API key not configured" });
     }
 
+    // get chat message and history
     const { message, history } = req.body || {};
 
     if (!message || typeof message !== "string") {
       return res.status(400).json({ error: "Invalid or missing 'message' in body" });
     }
 
-    // Ensure history is an array of { role, content } objects
+    // Ensure history is an array of { role, content } objects for chatbot
     const safeHistory = Array.isArray(history)
       ? history.filter(h => h && (h.role === "user" || h.role === "assistant" || h.role === "system") && typeof h.content === "string")
       : [];
 
+    // Define system prompt with specific instructions (rules)
     const systemPrompt = `
           You are 'Hava', the official AI assistant of the university's online student leave system, HavaBreak.
 
@@ -50,19 +53,27 @@ exports.chatbotReply = async (req, res) => {
           7. leave types of the HavaBreak are 'sick leave, emergency leave, personal leave, family leave, official leave, study leave, other'
           `;
 
+    // Prepare messages array for OpenAI chat completion
     const messages = [
+
+      // System prompt always first
       { role: "system", content: systemPrompt.trim() },
+
+      // Then the conversation history middle
       ...safeHistory,
+
+      // Finally the latest user message
       { role: "user", content: message }
     ];
 
+    // Call OpenAI chat
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      // optional: max_tokens: 512,
     });
 
     // Robust extraction for different SDK response shapes:
+    // try all known paths to get the reply content
     const reply =
       completion?.choices?.[0]?.message?.content ||
       completion?.choices?.[0]?.message ||
@@ -72,7 +83,7 @@ exports.chatbotReply = async (req, res) => {
     res.json({ reply });
   } catch (err) {
     console.error("AI Chat error:", (err?.response?.data) ? err.response.data : err.message || err);
-    res.status(500).json({ error: "AI chat failed" });
+    res.status(500).json({ error: "AI chat error!" });
   }
 };
 

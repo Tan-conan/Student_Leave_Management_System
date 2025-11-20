@@ -110,7 +110,7 @@ watch(searchingValue,(newval) => {
 </script>
 
 <template>
-<div class="flex flex-col items-center justify-center w-[100%] h-[100%] gap-2">
+<div class="flex flex-col items-center justify-center w-[100%] h-full">
 
     <div class="flex w-[100%] mx-auto px-0 justify-between">
 
@@ -118,6 +118,7 @@ watch(searchingValue,(newval) => {
             <ButtonUI word-class="Back to Login" width-class="w-auto" @click="backToLogin"/>
         </div>
 
+        <!--filtering method-->
         <div class="flex items-center justify-center gap-1 w-[70%]">
 
             <DropdownUI v-model:dropdown-value = 'filterValue' :options="filterList" placeholder="Filter By"width-class="w-[30%]"/>
@@ -130,11 +131,13 @@ watch(searchingValue,(newval) => {
         </div>
     </div>
 
-    <div v-if="manageRecords.length === 0" class="flex items-center justify-center w-full flex-1 border-greenSoft border-2 bg-ivory">
+    <div class="flex flex-col w-full flex-1 min-h-0 overflow-y-auto">   
+        <div v-if="manageRecords.length === 0" class="flex items-center justify-center w-full flex-1 border-greenSoft border-2 bg-ivory">
         <WordsUI word-class="currently no session available or no records send for this session"/>
     </div>
     <RecordListUI v-else :table-heads="tableHeads" :leave-records="manageRecords" v-model:current-sort-key="currentSortKey"
     v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>
+    </div>
 
 </div>
 

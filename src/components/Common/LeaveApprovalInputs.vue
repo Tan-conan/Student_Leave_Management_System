@@ -42,11 +42,12 @@ function updateLeaveReason(val) {
 
 <template>
 
+<!--back button-->
 <div class="flex justify-between items-center w-[100%] mx-auto px-0 gap-5">
     <ButtonUI word-class="Back to leave records" width-class="w-auto" @click="backToLeaveRequests"/>
 </div>
 
-<!-- section one -->
+<!-- section one (basic info)-->
 <div class="big-card">
         <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="Student Name:" text-color-class="text-wordSubTitle"/>
@@ -69,7 +70,7 @@ function updateLeaveReason(val) {
 </div>
     </div>
 
-<!-- section two -->
+<!-- section two (leave date range)-->
  <div class="big-card">
         <div class="flex items-center w-[100%] mx-auto px-0 gap-2">
     <WordsUI word-class="From" text-color-class="text-wordSubTitle"/>
@@ -85,7 +86,7 @@ function updateLeaveReason(val) {
 
     </div>
 
-<!-- section three -->
+<!-- section three (leave balance)-->
  <div class="big-card">
         <div class="flex">
     <WordsUI word-class="Student Current Leave Balance:" text-color-class="text-wordSubTitle"/>
@@ -103,6 +104,7 @@ function updateLeaveReason(val) {
 </div>
     </div>
 
+<!--reason to leave-->
 <WordsUI word-class="Reason to leave:" text-color-class="text-wordSubTitle"/>
 <TextAreaUI :inputValue="leaveReason" :rows="5" :maxLength="500" widthClass="w-[100%] min-h-[240px]" 
 @update:input-value="updateLeaveReason" :disabled="true"/>

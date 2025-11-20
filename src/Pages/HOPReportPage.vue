@@ -35,6 +35,7 @@ watch(selectedSession, (newVal, oldVal) => {
   fetchLeaveReport()
 })
 
+// for session dropdown
 async function fetchSessionList() {
   try {
     const res = await api.post('/reportManage/fetchSessionList')
@@ -49,6 +50,7 @@ async function fetchSessionList() {
   }
 }
 
+// for report list
 async function fetchLeaveReport() {
   try {
     const res = await api.post('/reportManage/fetchLeaveReport',{
@@ -81,7 +83,7 @@ async function verifyToken() {
   if (!token) {
     alert('No token detected, back to login page.')
     router.push('/')
-    return false
+    return false // tell onmounted verify failed
   }
 
   try {

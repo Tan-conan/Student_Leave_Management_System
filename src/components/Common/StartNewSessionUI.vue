@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { defineProps } from 'vue'
 import WordsUI from '../UI/WordsUI.vue';
 import InputUI from '../UI/InputUI.vue';
 import ButtonUI from '../UI/ButtonUI.vue';

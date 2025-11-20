@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 import WordsUI from './WordsUI.vue';
 
 const props = defineProps({
@@ -43,7 +43,7 @@ function keyClicked(val) {
             <div class="flex gap-1 items-center justify-center select-none">
 
               <WordsUI :word-class="head.label" text-color-class="text-cream"/>
-              <span v-if="currentSortKey === head.key">
+              <span v-if="currentSortKey === head.key"> <!--only show arrow for currently sorting column-->
                 {{ currentSortOrder === 'asc' ? '▼' : '▲' }}
               </span>
 
@@ -59,6 +59,7 @@ function keyClicked(val) {
 
           <td v-for="head in tableHeads" :key="head.key" class="text-center text-greenSoft font-bold text-2xl px-2 py-1">
 
+            <!--scoped slots-->
             <slot :name="`${head.key}`" :row="row" :value="row[head.key]">
               {{ row[head.key] }}
             </slot>

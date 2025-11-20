@@ -43,6 +43,7 @@ async function sendMessage() {
     time: new Date(),
   });
 
+  // pack user message
   const userMsg = inputMessage.value;
   inputMessage.value = '';
   scrollToBottom();
@@ -50,6 +51,7 @@ async function sendMessage() {
   try {
     const res = await api.post('/chatbotManage/chatbotReply', {
       message: userMsg,
+      // filter out system message this only need for first message
       history: messages.value.filter(m => m.sender !== 'system').map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
         content: m.content

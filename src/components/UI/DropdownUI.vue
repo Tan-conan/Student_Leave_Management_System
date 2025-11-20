@@ -10,6 +10,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:dropdownValue']);
 
+// pass dropdown value to parent component
 function selection(e){
     emit('update:dropdownValue',e.target.value)
 }
@@ -19,8 +20,8 @@ function selection(e){
 <template>
 
 <select :class="[
-    'border focus:outline-none border-greenSoft rounded-xl h-[50px] bg-inputField',
-    'placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft',
+    'border focus:outline-none focus:ring-2 focus:ring-emerald-500 border-greenSoft rounded-xl h-[50px] bg-inputField',
+    'placeholder-greenLight text-[20px] font-bold px-4 text-greenSoft transition duration-300 hover:border-3',
      widthClass]" :value="dropdownValue" @change="selection">
 
 <option disabled selected hidden value="">{{placeholder}}</option>

@@ -69,14 +69,18 @@ function passDate(val) {
 
 <template>
   <div class="flex flex-col gap-2 w-[50%] h-full">
+    <!--if no holiday-->
     <div v-if="holidayList.length === 0" class="flex items-center justify-center px-4 w-full h-full border-greenSoft border-2 bg-ivory">
         <WordsUI v-if="userSessionStatus === 'activated' || userSessionStatus === 'unactivated'" word-class="currently no holiday in this session"/>
         <WordsUI v-else word-class="currently no session available for this program"/>
     </div>
+
+    <!--holiday list-->
     <RecordListUI v-else :table-heads="tableHeads" :leave-records="holidayList" v-model:current-sort-key="currentSortKey"
      v-model:current-sort-order="currentSortOrder" height-class="flex-1"  @row-clicked="rowClickHandle"/>
 
-     <div class="big-card flex-1">
+    <!--add new holiday-->
+    <div class="big-card flex-1">
         <div class="small-card"><WordsUI word-class="ADD A NEW HOLIDAY" text-color-class="text-cream" word-bold-class="font-black" wordsize-class="text-[35px]" /></div>
     <div class="flex gap-2">
         <WordsUI word-class="Holiday Name:" text-color-class="text-wordSubTitle"/>
@@ -91,6 +95,7 @@ function passDate(val) {
         <div class="caution-card"><WordsUI word-class="once new Session starts unable to delete holidays until the end of session!"/></div>
     </div>
 
+    <!--button-->
     <div class="flex justify-end">
         <ButtonUI word-class="Add Holiday" width-class="min-w-auto w-[40%]" @update:word-class="emit('addHoliday')"/>
     </div>

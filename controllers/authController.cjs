@@ -6,6 +6,7 @@ const sendEmail = require("../utils/email.cjs");
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const JWT_EXPIRES = '5h';
 
+// fetch user info based on role
 function pickUserRow(role, row, session_id, session_status) {
   if (!row) return null;
   if (role === 'student') {
@@ -44,6 +45,7 @@ function pickUserRow(role, row, session_id, session_status) {
   return null;
 }
 
+// Get list of programs for register page
 exports.programList = async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -56,11 +58,12 @@ exports.programList = async (req, res) => {
   }
 };
 
+// Register a new user
 exports.register = async (req, res) => {
-  console.log('req.body:', req.body);
-
   try {
     const { role, name, email, password, student_id, program_name, date_join, contact_no, status } = req.body;
+
+    // check all required fields
     if (role === '' || !name || !email || !password || !date_join || program_name === '') {
       return res.json({ message: 'Please fill in all the forms!' });
     }
@@ -69,6 +72,7 @@ exports.register = async (req, res) => {
     //@[^\s@]+      ：must have one @，and back cant have space or second @
     // //\.[^\s@]+$ ：must have . ，and must have words after it
 
+    // check email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
@@ -79,6 +83,7 @@ exports.register = async (req, res) => {
       return res.json({ message: 'Please fill in the student ID!' });
     }
 
+    // get program_id from program_name
     let program_id = null;
     if (program_name) {
       const [rows] = await pool.query(
@@ -91,12 +96,15 @@ exports.register = async (req, res) => {
       program_id = rows[0].program_id;
     }
 
+    // hash password
     const hashed = await bcrypt.hash(password, 10);
 
     if (role === 'student') {
+      // check if email or student_id already exists
       const [exists] = await pool.query('SELECT 1 FROM Student WHERE student_email = ? OR student_id = ?', [email , student_id]);
       if (exists.length) return res.json({ message: 'This email or student id has been registered!' });
 
+      // insert new student
       await pool.query(
         `INSERT INTO Student (student_id, program_id, student_name, student_email, contact_no, password_hash,
          date_join, student_status)
@@ -108,9 +116,11 @@ exports.register = async (req, res) => {
     }
 
     if (role === 'lecturer') {
+      // check if email already exists
       const [exists] = await pool.query('SELECT 1 FROM Lecturer WHERE lecturer_email = ?', [email]);
       if (exists.length) return res.json({ message: 'This email has been registered!' });
 
+      // insert new lecturer
       await pool.query(
         `INSERT INTO Lecturer (program_id, lecturer_name, lecturer_email, contact_no, password_hash, date_join, lecturer_status)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -127,25 +137,32 @@ exports.register = async (req, res) => {
   }
 }
 
+// Login 1: Verify user information and send OTP
 exports.userVerify = async (req, res) => {
   try {
     const { role, email, password } = req.body;
+
+    // check all required fields
     if (!role || !email || !password) return res.json({ message: 'please fill in all requirement!' });
 
-    // choose table
-    let sql, params;
+    // check user existence by email
+    let sql;
     if (role === 'student') sql = 'SELECT * FROM Student WHERE student_email = ?';
     else if (role === 'lecturer') sql = 'SELECT * FROM Lecturer WHERE lecturer_email = ?';
     else if (role === 'hop') sql = 'SELECT * FROM HOP WHERE hop_email = ?';
-    else return res.status(400).json({ message: 'unknown role' });
+    else return res.json({ message: 'unknown role!' });
 
     const [rows] = await pool.query(sql, [email]);
     if (!rows.length) return res.json({ message: 'user not exist!' });
 
+    // get first result (row)
     const userRow = rows[0];
+
+    // check account status by role
     const userStatus = role === 'student' ? userRow.student_status : role === 'lecturer' ? userRow.lecturer_status : userRow.hop_status;
     if (userStatus === 'pending') return res.json({ message: 'Your account has not been activated yet, unable to login!' });
 
+    // compare password
     const ok = await bcrypt.compare(password, userRow.password_hash);
     if (!ok) return res.json({ message: 'user not exist or password incorrect!' });
 
@@ -162,8 +179,10 @@ exports.userVerify = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOTP = await bcrypt.hash(otp, 10);
 
+    // set expiration time for OTP
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
+    // save OTP to database
     let insertResult;
     if (role === 'student') {
       insertResult = await pool.execute(
@@ -188,7 +207,7 @@ exports.userVerify = async (req, res) => {
     // check insert success (mysql2 returns [result] from execute)
     const insertInfo = insertResult[0];
     if (!insertInfo || !insertInfo.insertId) {
-      return res.status(500).json({ message: 'failed to save otp code to database!' });
+      return res.json({ message: 'failed to save otp code to database!' });
     }
 
     // send email
@@ -209,8 +228,11 @@ exports.userVerify = async (req, res) => {
   }
 };
 
+// Login 2: Verify OTP
 exports.otpCodeCheck = async (req, res) => {
   try {
+    
+    // check all required fields
     const { role, email, otp } = req.body;
     if (!role || !email || !otp) return res.status(400).json({ message: 'role, email and otp are required' });
 
@@ -219,10 +241,10 @@ exports.otpCodeCheck = async (req, res) => {
     if (role === 'student') sql = 'SELECT * FROM Student WHERE student_email = ?';
     else if (role === 'lecturer') sql = 'SELECT * FROM Lecturer WHERE lecturer_email = ?';
     else if (role === 'hop') sql = 'SELECT * FROM HOP WHERE hop_email = ?';
-    else return res.status(400).json({ message: 'unknown role' });
+    else return res.json({ message: 'unknown role!' });
 
     const [rows] = await pool.query(sql, [email]);
-    if (!rows.length) return res.status(404).json({ message: 'user not exist!' });
+    if (!rows.length) return res.json({ message: 'user not exist!' });
     const userRow = rows[0];
 
     // find latest valid OTP
@@ -239,10 +261,12 @@ exports.otpCodeCheck = async (req, res) => {
       const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
       if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
+      // Invalidate OTP after successful verification
       const otpId = otpRows[0].otp_stu_id;
       await pool.execute(`UPDATE otpStudent SET otp_status = FALSE WHERE otp_stu_id = ?`, [otpId]);
 
     } else if (role === 'lecturer') {
+      // lecturer find latest valid OTP
       const [otpRows] = await pool.execute(
         `SELECT otp_lec_id, otp_code, expires_at FROM otpLecturer
          WHERE lecturer_id = ? AND otp_status = TRUE AND expires_at > NOW()
@@ -255,11 +279,12 @@ exports.otpCodeCheck = async (req, res) => {
       const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
       if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
+      // Invalidate OTP after successful verification
       const otpId = otpRows[0].otp_lec_id;
       await pool.execute(`UPDATE otpLecturer SET otp_status = FALSE WHERE otp_lec_id = ?`, [otpId]);
 
     } else {
-      // hop
+      // hop find latest valid OTP
       const [otpRows] = await pool.execute(
         `SELECT otp_hop_id, otp_code, expires_at FROM otpHOP
          WHERE hop_id = ? AND otp_status = TRUE AND expires_at > NOW()
@@ -272,6 +297,7 @@ exports.otpCodeCheck = async (req, res) => {
       const isValidOTP = await bcrypt.compare(otp, otpRows[0].otp_code);
       if (!isValidOTP) return res.json({ message: 'Invalid OTP!' });
 
+      // Invalidate OTP after successful verification
       const otpId = otpRows[0].otp_hop_id;
       await pool.execute(`UPDATE otpHOP SET otp_status = FALSE WHERE otp_hop_id = ?`, [otpId]);
     }
@@ -283,23 +309,27 @@ exports.otpCodeCheck = async (req, res) => {
   }
 };
 
+// Login 3: Finalize login and issue JWT
 exports.userlogin = async (req, res) => {
   try {
+    // check all required fields
     const { role, email } = req.body;
-    if (!role || !email) return res.status(400).json({ message: 'role or email is missing!' });
+    if (!role || !email) return res.json({ message: 'role or email is missing!' });
 
+    // get user row by email based on role
     let sql;
     if (role === 'student') sql = 'SELECT * FROM Student WHERE student_email = ?';
     else if (role === 'lecturer') sql = 'SELECT * FROM Lecturer WHERE lecturer_email = ?';
     else if (role === 'hop') sql = 'SELECT * FROM HOP WHERE hop_email = ?';
-    else return res.status(400).json({ message: 'unknown role' });
+    else return res.json({ message: 'unknown role!' });
 
     const [rows] = await pool.query(sql, [email]);
-    if (!rows.length) return res.status(404).json({ message: 'user not exist!' });
+    if (!rows.length) return res.json({ message: 'user not exist!' });
 
     const userRow = rows[0];
     const programId = userRow.program_id;
 
+    // get current earliest unactivated or activated session for the user's program
     const [sessionRow] = await pool.execute(
       `SELECT session_id, session_status FROM Session
        WHERE session_status IN ('unactivated','activated') AND program_id = ?
@@ -307,12 +337,17 @@ exports.userlogin = async (req, res) => {
       [programId]
     );
 
+    // extract session_id and session_status or set to 'none' if no session found
     let session_id = 'none', session_status = 'none';
     if (sessionRow.length) {
       ({ session_id, session_status } = sessionRow[0]);
     }
 
+    // prepare user info for token
     const userInfo = pickUserRow(role, userRow, session_id, session_status);
+    if (!userInfo) return res.json({ message: 'failed to prepare user info!' });
+
+    // generate JWT
     const token = jwt.sign(
       { id: userInfo.id, role: userInfo.role, email: userInfo.email, programId: userInfo.program, 
         sessionId: userInfo.sessionId, sessionStatus: userInfo.sessionStatus },
@@ -323,6 +358,6 @@ exports.userlogin = async (req, res) => {
     return res.json({ message: `login success! welcome user ${userInfo.name}`, token, user: userInfo, successfully: true });
   } catch (err) {
     console.error('userlogin error:', err);
-    return res.status(500).json({ message: 'server error' });
+    return res.json({ message: 'server error' });
   }
 };

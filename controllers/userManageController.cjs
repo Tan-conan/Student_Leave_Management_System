@@ -1,10 +1,12 @@
 const pool = require('../config/database.cjs');
 
+// for hop viewing student
 exports.fetchStudentUser = async (req, res) => {
   try {
     const { studentId } = req.body;
     const { programId, sessionId, sessionStatus } = req.user;
 
+    // fetch student
     const [studentInfo] = await pool.execute(
       `SELECT student_name, student_status, date_join, student_email, contact_no
         FROM Student
@@ -16,6 +18,7 @@ exports.fetchStudentUser = async (req, res) => {
       return res.json({ message: 'No student found!' });
     }
 
+    // fetch program
     const [programName] = await pool.execute(
       `SELECT program_name
         FROM Program
@@ -77,11 +80,13 @@ exports.fetchStudentUser = async (req, res) => {
   }
 }
 
+// for hop view lecturer
 exports.fetchLecturerUser = async (req, res) => {
   try {
     const { lecturerId } = req.body;
-    const { programId, sessionId, sessionStatus } = req.user;
+    const { programId, sessionId } = req.user;
 
+    // fetch lecturer
     const [lecturerInfo] = await pool.execute(
       `SELECT lecturer_name, lecturer_status, date_join, lecturer_email, contact_no
         FROM Lecturer
@@ -93,6 +98,7 @@ exports.fetchLecturerUser = async (req, res) => {
       return res.json({ message: 'No student found!' });
     }
 
+    // fetch program
     const [programName] = await pool.execute(
       `SELECT program_name
         FROM Program
@@ -106,6 +112,7 @@ exports.fetchLecturerUser = async (req, res) => {
 
     let assignedCourse = null
 
+    // if session available
     if (sessionId !== 'none') {
       //fetch assigned class for lecturer
       const [fetchAssignedCourse] = await pool.execute(
@@ -120,6 +127,7 @@ exports.fetchLecturerUser = async (req, res) => {
       );
 
       if (fetchAssignedCourse.length > 0) {
+        // fetch course name into a list
         assignedCourse = fetchAssignedCourse.map(row => row.course_name);
       } else {
         assignedCourse = []
@@ -136,6 +144,7 @@ exports.fetchLecturerUser = async (req, res) => {
   }
 }
 
+// for user view own info
 exports.fetchOwnUser = async (req, res) => {
   try {
     const { programId, role, id, sessionStatus, sessionId } = req.user;
@@ -181,7 +190,7 @@ exports.fetchOwnUser = async (req, res) => {
             `SELECT current_leave, predicted_leave
             FROM Sessionleave
             WHERE student_id = ? AND session_id = ?`,
-            [studentId, sessionId]
+            [id, sessionId]
           );
       
           // if cant found record, leave all none
@@ -240,6 +249,7 @@ exports.fetchOwnUser = async (req, res) => {
 
         let assignedCourse = null
         
+        // if session available
         if (sessionId !== 'none') {
           //fetch assigned class for lecturer
           const [fetchAssignedCourse] = await pool.execute(
@@ -301,10 +311,15 @@ exports.fetchOwnUser = async (req, res) => {
   }
 }
 
+// for hop only
 exports.saveUserInfo = async (req, res) => {
   try {
     const { userId, userRole, userName, userEmail, userNum, userJoinDate, userStatus } = req.body;
-    const { id } = req.user;
+    const { id, role } = req.user;
+
+    if (role !== 'hop') {
+      return res.json({ message: 'You do not have permission to do this!' });
+    }
 
     let selectedId = null;
 
@@ -316,6 +331,7 @@ exports.saveUserInfo = async (req, res) => {
       selectedId = userId;
     }
 
+    // if viewing student
     if (userRole === 'student') {
       await pool.execute(
         `UPDATE Student
@@ -325,6 +341,7 @@ exports.saveUserInfo = async (req, res) => {
       );
     }
 
+    // if viewing lecturer
     if (userRole === 'lecturer') {
       await pool.execute(
         `UPDATE Lecturer
@@ -334,6 +351,7 @@ exports.saveUserInfo = async (req, res) => {
       );
     }
 
+    // if viewing own hop
     if (userRole === 'hop') {
       await pool.execute(
         `UPDATE HOP

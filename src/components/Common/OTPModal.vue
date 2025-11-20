@@ -20,6 +20,7 @@ const warningMessage = ref('')
 
 async function otpCodeCheck() {
     console.log('email and role is', props.email, props.role)
+    // check otp code field
     if (!props.otpCode) {
         warningMessage.value = 'please fill in the OTP code!'
         return;

@@ -77,6 +77,29 @@ watch(joinDate, (newVal) => {
 })
 
 async function registerUser() {
+  if (!userName.value || !userEmail.value || !userPassword.value || !userConfirmPass.value|| !userContactNum.value || 
+  !dropdownValue.value || !currentRadioValue.value || !joinDate.value  ) {
+    confirmationModal.value = {
+      visible: true,
+      title: 'Siggn up warning',
+      message: 'Please fill in all the forms!',
+      action: null,
+      modalType: 'warning',
+    }
+    return
+  }
+
+  if (currentRadioValue.value === 'student' && !userSID.value) {
+    confirmationModal.value = {
+      visible: true,
+      title: 'error phone format',
+      message: 'Please fill in student ID!',
+      action: null,
+      modalType: 'warning',
+    }
+  return;
+  }
+
   // password not = confirm pass, reject
   if (userPassword.value !== userConfirmPass.value) {
     confirmationModal.value = {

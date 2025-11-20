@@ -6,7 +6,6 @@ import ChatGPT_UniversityPic from '../assets/ChatGPT_UniversityPic.png'
 import LoginInputs from '../components/Common/LoginInputs.vue';
 import LoginCheckboxes from '../components/Common/LoginCheckboxes.vue';
 import LoginButtons from '../components/Common/LoginButtons.vue';
-import LoginModals from '../components/Common/LoginModals.vue';
 import ComfirmationModal from '../components/Common/ComfirmationModal.vue';
 import OtpModal from '../components/Common/otpModal.vue';
 
@@ -19,9 +18,8 @@ const userPassword = ref('');
 const currentRadioValue = ref('') // user role selection
 const clickedButtonValue = ref('') // detect which button clicked
 
-const forgotPassModalVisible = ref(false) // toggle forgot password modals on and off
 const otpModalVisible = ref(false)
-const otpCode = ref('')
+const otpCode = ref('') //user input otp code
 
 const confirmationModal = ref({
   visible: false,
@@ -50,6 +48,7 @@ watch(currentRadioValue, (newVal) => {
   console.log('radioValue is now:', newVal)
 })
 
+// check which button is clicked
 watch(clickedButtonValue, (newVal) => {
   if (!newVal) return // if newVal is empty or null return instead
   console.log('now the user is clicking:', newVal)
@@ -61,6 +60,7 @@ watch(clickedButtonValue, (newVal) => {
   clickedButtonValue.value = ''
 })
 
+// navigate to Sign Up page
 function goSignUp() {
   router.push('/Signup')
 }
@@ -168,7 +168,7 @@ onMounted(() => {
 
     <LoginInputs v-model:user-name = 'userEmail' v-model:user-password='userPassword'/>
     <LoginCheckboxes v-model:current-radio-value = 'currentRadioValue'/>
-    <LoginButtons v-model:clicked-button-value = 'clickedButtonValue' @forgotPassClicked="forgotPassModalVisible=!forgotPassModalVisible"/>
+    <LoginButtons v-model:clicked-button-value = 'clickedButtonValue'/>
 
     </div>
 

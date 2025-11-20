@@ -151,7 +151,7 @@ function openLeaveRequest(row) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 h-screen">
+  <div class="flex flex-col p-2 h-screen">
 
     <UserMenuModal v-model:user-menu-modal-visible="userMenuModalVisible" v-model:user-name="userName" v-model:user-type="userType"
      @update:user-menu-modal-visible="userMenuModalVisible = false"/>
@@ -159,8 +159,10 @@ function openLeaveRequest(row) {
     <UserTopPageUI v-model:top-page-title="topPageTitle" v-model:user-name="userName" v-model:user-type="userType"
      @menu-clicked="userMenuModalVisible = true"/>
 
+    <div class="flex-1 min-h-0">
     <LeaveRequestsList v-model:user-name="userName" v-model:user-type="userType" :leave-records="leaveRecords" 
     @row-clicked-handle="openLeaveRequest"/>
+    </div>
 
   </div>
 

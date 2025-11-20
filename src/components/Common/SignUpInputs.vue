@@ -2,7 +2,7 @@
 import DatePicker from '../UI/DatePicker.vue';
 import InputUI from '../UI/InputUI.vue';
 import WordsUI from '../UI/WordsUI.vue';
-import { ref, defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   userName:{type:String, default:''},
